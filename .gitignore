@@ -1,0 +1,7 @@
+# Cloudflare 资产上传会话令牌（一次性，含敏感凭证）
+completion.jwt
+
+# 本地过程文件
+*.bin
+*.log
+latest.bin

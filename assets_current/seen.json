@@ -1,0 +1,401 @@
+{
+ "/agent/better-browser-mcp": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 82963,
+  "page": true
+ },
+ "/logos/better-browser-mcp.svg": {
+  "status": 200,
+  "ctype": "image/svg+xml",
+  "opennext": false,
+  "size": 725,
+  "page": false
+ },
+ "/logos/browsentic.png": {
+  "status": 200,
+  "ctype": "image/png",
+  "opennext": false,
+  "size": 4957,
+  "page": false
+ },
+ "/logos/auto-browser.png": {
+  "status": 200,
+  "ctype": "image/png",
+  "opennext": false,
+  "size": 3262,
+  "page": false
+ },
+ "/logos/foundry-browser-automation.png": {
+  "status": 200,
+  "ctype": "image/png",
+  "opennext": false,
+  "size": 1669,
+  "page": false
+ },
+ "/logos/opencode-browse.svg": {
+  "status": 200,
+  "ctype": "image/svg+xml",
+  "opennext": false,
+  "size": 612,
+  "page": false
+ },
+ "/posters/huashu-chrome.png": {
+  "status": 200,
+  "ctype": "image/png",
+  "opennext": false,
+  "size": 373830,
+  "page": false
+ },
+ "/logos/huashu-chrome.jpg": {
+  "status": 200,
+  "ctype": "image/jpeg",
+  "opennext": false,
+  "size": 29460,
+  "page": false
+ },
+ "/logos/agent-browser.png": {
+  "status": 200,
+  "ctype": "image/png",
+  "opennext": false,
+  "size": 7821,
+  "page": false
+ },
+ "/logos/xbrowser.png": {
+  "status": 200,
+  "ctype": "image/png",
+  "opennext": false,
+  "size": 1624,
+  "page": false
+ },
+ "/logos/ego-lite.svg": {
+  "status": 200,
+  "ctype": "image/svg+xml",
+  "opennext": false,
+  "size": 974,
+  "page": false
+ },
+ "/logos/smooth.svg": {
+  "status": 200,
+  "ctype": "image/svg+xml",
+  "opennext": false,
+  "size": 981,
+  "page": false
+ },
+ "/logos/openai.png": {
+  "status": 200,
+  "ctype": "image/png",
+  "opennext": false,
+  "size": 4081,
+  "page": false
+ },
+ "/logos/notte.png": {
+  "status": 200,
+  "ctype": "image/png",
+  "opennext": false,
+  "size": 8954,
+  "page": false
+ },
+ "/logos/claude.png": {
+  "status": 200,
+  "ctype": "image/png",
+  "opennext": false,
+  "size": 62828,
+  "page": false
+ },
+ "/logos/playwright.svg": {
+  "status": 200,
+  "ctype": "image/svg+xml",
+  "opennext": false,
+  "size": 5033,
+  "page": false
+ },
+ "/logos/skyvern.png": {
+  "status": 200,
+  "ctype": "image/png",
+  "opennext": false,
+  "size": 53029,
+  "page": false
+ },
+ "/logos/stagehand.svg": {
+  "status": 200,
+  "ctype": "image/svg+xml",
+  "opennext": false,
+  "size": 423,
+  "page": false
+ },
+ "/logos/browser-use.png": {
+  "status": 200,
+  "ctype": "image/png",
+  "opennext": false,
+  "size": 8127,
+  "page": false
+ },
+ "/_next/static/chunks/2xjrfn7kyy4t_.js": {
+  "status": 200,
+  "ctype": "application/javascript",
+  "opennext": false,
+  "size": 22647,
+  "page": false
+ },
+ "/_next/static/chunks/4583qnkd2m-l1.css": {
+  "status": 200,
+  "ctype": "text/css",
+  "opennext": false,
+  "size": 65596,
+  "page": false
+ },
+ "/_next/static/chunks/42jrnv_t82twh.js": {
+  "status": 200,
+  "ctype": "application/javascript",
+  "opennext": false,
+  "size": 59726,
+  "page": false
+ },
+ "/_next/static/immutable": {
+  "status": 404,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 66666,
+  "page": false
+ },
+ "/_next/static/chunks/0b-0uenmbm1pe.js": {
+  "status": 200,
+  "ctype": "application/javascript",
+  "opennext": false,
+  "size": 28346,
+  "page": false
+ },
+ "/_next/static/media/017d9bea37084d9b-s.p.41rroleoq1br7.woff2": {
+  "status": 200,
+  "ctype": "font/woff2",
+  "opennext": false,
+  "size": 41236,
+  "page": false
+ },
+ "/_next/static/chunks/1ckvzn7sfprko.js": {
+  "status": 200,
+  "ctype": "text/javascript",
+  "opennext": false,
+  "size": 5584,
+  "page": false
+ },
+ "/_next/static/chunks/0cz1d0mv5g_q7.js": {
+  "status": 200,
+  "ctype": "text/javascript",
+  "opennext": false,
+  "size": 112594,
+  "page": false
+ },
+ "/_next/static/chunks/turbopack-3-ry682tkyiqk.js": {
+  "status": 200,
+  "ctype": "text/javascript",
+  "opennext": false,
+  "size": 10030,
+  "page": false
+ },
+ "/_next/static/chunks/34goyxc2anvlg.js": {
+  "status": 200,
+  "ctype": "text/javascript",
+  "opennext": false,
+  "size": 163051,
+  "page": false
+ },
+ "/_next/static/chunks/2gvu8dyrhibpa.js": {
+  "status": 200,
+  "ctype": "text/javascript",
+  "opennext": false,
+  "size": 229597,
+  "page": false
+ },
+ "/_next/static/chunks/1-nqmp1rl8kqt.js": {
+  "status": 200,
+  "ctype": "text/javascript",
+  "opennext": false,
+  "size": 34043,
+  "page": false
+ },
+ "/agent/playwright-mcp": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 83734,
+  "page": true
+ },
+ "/agent/claude-in-chrome": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 86660,
+  "page": true
+ },
+ "/agent/openai-computer-use": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 86185,
+  "page": true
+ },
+ "/agent/notte": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 86175,
+  "page": true
+ },
+ "/agent/stagehand": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 86507,
+  "page": true
+ },
+ "/agent/browser-use": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 86403,
+  "page": true
+ },
+ "/sponsor": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 65232,
+  "page": true
+ },
+ "/_next/static/chunks/0z_5w_lk7_h-0.js": {
+  "status": 200,
+  "ctype": "text/javascript",
+  "opennext": false,
+  "size": 539,
+  "page": false
+ },
+ "/about": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 125311,
+  "page": true
+ },
+ "/_next/static/chunks/097fcfz_magjp.js": {
+  "status": 200,
+  "ctype": "application/javascript",
+  "opennext": false,
+  "size": 3586,
+  "page": false
+ },
+ "/agent/skyvern": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 84456,
+  "page": true
+ },
+ "/browseboard.svg": {
+  "status": 200,
+  "ctype": "image/svg+xml",
+  "opennext": false,
+  "size": 456,
+  "page": false
+ },
+ "/icon.svg": {
+  "status": 200,
+  "ctype": "image/svg+xml",
+  "opennext": true,
+  "size": 456,
+  "page": false
+ },
+ "/llms.txt": {
+  "status": 200,
+  "ctype": "text/plain; charset=utf-8",
+  "opennext": true,
+  "size": 1379,
+  "page": false
+ },
+ "/api/agents": {
+  "status": 200,
+  "ctype": "application/json",
+  "opennext": true,
+  "size": 15850,
+  "page": false
+ },
+ "/agent/browsentic": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 83137,
+  "page": true
+ },
+ "/agent/auto-browser": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 81980,
+  "page": true
+ },
+ "/agent/foundry-browser-automation": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 84032,
+  "page": true
+ },
+ "/agent/opencode-browse": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 83089,
+  "page": true
+ },
+ "/agent/huashu-chrome": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 75737,
+  "page": true
+ },
+ "/agent/agent-browser": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 75639,
+  "page": true
+ },
+ "/agent/xbrowser": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 75686,
+  "page": true
+ },
+ "/agent/ego-lite": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 76145,
+  "page": true
+ },
+ "/agent/smooth": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 85449,
+  "page": true
+ },
+ "/": {
+  "status": 200,
+  "ctype": "text/html; charset=utf-8",
+  "opennext": true,
+  "size": 225911,
+  "page": true
+ },
+ "/_next/static/chunks/1_rvcu46_4k20.js": {
+  "status": 200,
+  "ctype": "application/javascript",
+  "opennext": false,
+  "size": 28164,
+  "page": false
+ }
+}

@@ -1,0 +1,170 @@
+{
+  "/_next/static/chunks/097fcfz_magjp.js": {
+    "hash": "42e001cc2f9c01ca1c30c85f041e9ef7",
+    "size": 3586,
+    "content_type": "application/javascript"
+  },
+  "/_next/static/chunks/0b-0uenmbm1pe.js": {
+    "hash": "a466083444a9782cdc5f329f05b50081",
+    "size": 28346,
+    "content_type": "application/javascript"
+  },
+  "/_next/static/chunks/0cz1d0mv5g_q7.js": {
+    "hash": "0973c1d64c88adc8e3c950410cb58b28",
+    "size": 112594,
+    "content_type": "text/javascript"
+  },
+  "/_next/static/chunks/0z_5w_lk7_h-0.js": {
+    "hash": "da00e37bb2923659900d7a6b92f4b667",
+    "size": 539,
+    "content_type": "text/javascript"
+  },
+  "/_next/static/chunks/1-nqmp1rl8kqt.js": {
+    "hash": "cd8e8b5b5f9a280bd64064eca10fc2ac",
+    "size": 34043,
+    "content_type": "text/javascript"
+  },
+  "/_next/static/chunks/1_rvcu46_4k20.js": {
+    "hash": "34d82a49d94780837ea357e9d317102e",
+    "size": 28164,
+    "content_type": "application/javascript"
+  },
+  "/_next/static/chunks/1ckvzn7sfprko.js": {
+    "hash": "b5da0737b5325e403fc1e949b3439b5e",
+    "size": 5584,
+    "content_type": "text/javascript"
+  },
+  "/_next/static/chunks/2gvu8dyrhibpa.js": {
+    "hash": "a9a22d901d1ce816282743c970e289fc",
+    "size": 229597,
+    "content_type": "text/javascript"
+  },
+  "/_next/static/chunks/2xjrfn7kyy4t_.js": {
+    "hash": "5e1faa0b4e951404dafa1316accc584c",
+    "size": 22647,
+    "content_type": "application/javascript"
+  },
+  "/_next/static/chunks/34goyxc2anvlg.js": {
+    "hash": "ff301e64b9db38910aae979833b41466",
+    "size": 163051,
+    "content_type": "text/javascript"
+  },
+  "/_next/static/chunks/42jrnv_t82twh.js": {
+    "hash": "7bafc872669f9e4b0e869352dfbe28b4",
+    "size": 59726,
+    "content_type": "application/javascript"
+  },
+  "/_next/static/chunks/4583qnkd2m-l1.css": {
+    "hash": "a48e8c7572c369a6faebb5338f3dc52c",
+    "size": 65596,
+    "content_type": "text/css"
+  },
+  "/_next/static/chunks/turbopack-3-ry682tkyiqk.js": {
+    "hash": "8bbb58cbfd4633c1d828c6bc37bc32ab",
+    "size": 10030,
+    "content_type": "text/javascript"
+  },
+  "/_next/static/media/017d9bea37084d9b-s.p.41rroleoq1br7.woff2": {
+    "hash": "4fd48b2c1ab27220e71f15f990550261",
+    "size": 41236,
+    "content_type": "font/woff2"
+  },
+  "/browseboard.svg": {
+    "hash": "15116006c92143c7b2a88a3fc18e5d59",
+    "size": 456,
+    "content_type": "image/svg+xml"
+  },
+  "/logos/agent-browser.png": {
+    "hash": "3d7d267e05f2c13b9914805dffff2ce7",
+    "size": 7821,
+    "content_type": "image/png"
+  },
+  "/logos/auto-browser.png": {
+    "hash": "ed64b4a5a5fe3e2edbf766d8d02c10cd",
+    "size": 3262,
+    "content_type": "image/png"
+  },
+  "/logos/better-browser-mcp.svg": {
+    "hash": "d20942b8465982f60e1fd6dcfac1a560",
+    "size": 725,
+    "content_type": "image/svg+xml"
+  },
+  "/logos/browsentic.png": {
+    "hash": "2dfa7b45d11ae0597a393f6e720626d8",
+    "size": 4957,
+    "content_type": "image/png"
+  },
+  "/logos/browser-use.png": {
+    "hash": "c7d5fb5b1994a10110017f8bc5cdcb05",
+    "size": 8127,
+    "content_type": "image/png"
+  },
+  "/logos/claude.png": {
+    "hash": "dcc58271920750441afd420268045add",
+    "size": 62828,
+    "content_type": "image/png"
+  },
+  "/logos/ego-lite.svg": {
+    "hash": "ac3dc981a10c491016675a966186ed41",
+    "size": 974,
+    "content_type": "image/svg+xml"
+  },
+  "/logos/foundry-browser-automation.png": {
+    "hash": "45b898f579d3e610f40533bf9183524b",
+    "size": 1669,
+    "content_type": "image/png"
+  },
+  "/logos/huashu-chrome.jpg": {
+    "hash": "7a3abdfa97f18e2cae2e56af60796263",
+    "size": 29460,
+    "content_type": "image/jpeg"
+  },
+  "/logos/notte.png": {
+    "hash": "910fccba4c19811f02eb870569ec6116",
+    "size": 8954,
+    "content_type": "image/png"
+  },
+  "/logos/openai.png": {
+    "hash": "6025a4347a8eaed17e31eaebf7834e33",
+    "size": 4081,
+    "content_type": "image/png"
+  },
+  "/logos/opencode-browse.svg": {
+    "hash": "e29bbe33380ad1c1ada9134b52f229d3",
+    "size": 612,
+    "content_type": "image/svg+xml"
+  },
+  "/logos/playwright.svg": {
+    "hash": "6b0a4367bdeab10995bc239278f04c68",
+    "size": 5033,
+    "content_type": "image/svg+xml"
+  },
+  "/logos/skyvern.png": {
+    "hash": "d0534cc9066ff205cbe31af1b07f8948",
+    "size": 53029,
+    "content_type": "image/png"
+  },
+  "/logos/smooth.svg": {
+    "hash": "1c21c4349c70480843765d4e0c016f25",
+    "size": 981,
+    "content_type": "image/svg+xml"
+  },
+  "/logos/stagehand.svg": {
+    "hash": "0c6cc5a6c198d18c2496a1b6e0625d17",
+    "size": 423,
+    "content_type": "image/svg+xml"
+  },
+  "/logos/xbrowser.png": {
+    "hash": "46a51ed36c4860391cd47e291b83d0cf",
+    "size": 1624,
+    "content_type": "image/png"
+  },
+  "/posters/huashu-chrome.png": {
+    "hash": "6b10b349b65d72bec8e74f7b551265b1",
+    "size": 373830,
+    "content_type": "image/png"
+  },
+  "/wechat-qr.jpg": {
+    "content_type": "image/jpeg"
+  }
+}
