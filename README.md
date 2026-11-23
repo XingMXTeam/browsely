@@ -1,34 +1,46 @@
 # Browsely (Browserly)
 
-[browserly.maoxunxing.com](https://browserly.maoxunxing.com/) 的线上代码存档：17 个浏览器智能体（Browser Use、Stagehand、Skyvern、Playwright MCP 等）的双语对比看板，每条有独立详情页 `/agent/<id>`，另有 `/sponsor` 赞助页。
+[browserly.maoxunxing.com](https://browserly.maoxunxing.com/)：17 个浏览器驱动型 AI 智能体（Browser Use、Stagehand、Skyvern、Playwright MCP 等）的双语核对矩阵与深度档案看板，含详情页 `/agent/<id>`、方法论与更新记录页 `/about`、赞助页 `/sponsor`，以及面向程序与 Agent 的 `/api/agents` 与 `/llms.txt`。
 
-> 仓库名按 GitHub 既定名称拼作 `browsely`，产品名与域名为 **Browserly**（原名 BrowseBoard）。
+> 仓库名按 GitHub 既定名称拼作 `browsely`，产品名与域名为 **Browserly**（原名 BrowseBoard）。详细架构与维护指南见 [AGENTS.md](./AGENTS.md)。
 
-## 这是什么形态的代码
+## 源码与构建结构
 
-本站没有传统的源码仓库：它是 **Next.js + OpenNext 构建后跑在 Cloudflare Workers** 上的站点，Worker 名为 `browseboard`。本仓库保存的是当前线上正在运行的构建产物与运维脚本，用于版本存档与后续补丁维护：
+项目采用零外部依赖的原生 ES Module Cloudflare Worker + 轻量化静态资产架构：
 
 | 路径 | 内容 |
 |---|---|
-| `pkg/worker.js` | 当前线上 Worker 构建产物（单文件 bundle） |
-| `assets_current/` | 当前线上全量静态资产（`_next` chunks、logos、posters、`llms.txt`、`api/agents` 数据等），清单见 `manifest_raw.json` |
-| `upload_and_version.py` | 创建资产上传会话、上传变更资产并上传新 Worker 版本（`--deploy` 直接部署） |
-| `deploy_version.py` | 把指定 version_id 以 100% 流量部署 |
-| `get_version.py` | 查询当前版本 |
-| `patch_title.py` / `patch_footer.py` / `patch_contact.py` | 对 `worker.js` 的历史补丁脚本（标题恢复、页脚恢复、全站联系方式） |
-| `crawl_current.py` | 抓取线上资产清单的脚本 |
-| `deployments.json` | 历史部署记录 |
+| `src/data/` | `seed.json`（核心核对数据）、`stories.json`（中文深度评述）与标准化数据层 `catalog.js` |
+| `src/i18n/dict.js` | 中英双语词典与语义徽章映射 |
+| `src/styles/app.css` | 编辑级视觉系统、响应式栅格与克制微动效 |
+| `src/client/app.js` | 零依赖前端运行时（实时筛选、快速场景、并排对比弹窗、演示抽屉、即时无刷新双语切换） |
+| `src/server/` | Cloudflare Worker 服务端渲染与路由 (`worker.js`、`pages.js`、`components.js`、`icons.js`) |
+| `scripts/build.mjs` | 打包压缩 CSS/JS 与单文件 `pkg/worker.js`，并更新 `assets_current/manifest_raw.json` |
+| `scripts/dev.mjs` | 本地 Worker 预览服务器（默认端口 `8787`） |
+| `scripts/verify.mjs` | 数据层不变量、全路由 SSR、API 契约、资产哈希与体积预算自动化校验 |
+| `pkg/worker.js` | 编译后的单文件 Cloudflare Worker 产物 |
+| `assets_current/` | 静态资产（`assets/app.*.css|js`、字体、logos、posters、二维码、`manifest_raw.json`） |
+| `wrangler.jsonc` | 标准 Cloudflare Wrangler 配置文件 |
+| `upload_and_version.py` | Cloudflare Workers API 静态资产同步与版本部署脚本 |
 
-## 部署方式
+## 本地开发与校验
 
-通过 Cloudflare Workers API 直传（脚本内走已配置的 Cloudflare 凭证）：
+仅需 Node.js（原生 ESM，无需 `npm install`）：
 
 ```bash
-python3 upload_and_version.py --deploy   # 上传资产 + 新版本并部署
-python3 deploy_version.py <version_id>   # 部署已有版本
+npm run check    # 构建 pkg/worker.js + 静态资产并运行全量自动化校验
+npm run dev      # 启动本地预览服务器 http://127.0.0.1:8787
 ```
 
-## 注意
+## 部署到 Cloudflare Workers
 
-- `completion.jwt` 是资产上传会话的一次性令牌，**不要提交**（已在 `.gitignore` 中排除）。
-- 本地工作目录中的历史页面快照、旧 bundle 等过程文件未入仓；如需继续开发，建议以本仓库的线上产物为准。
+支持两种方式部署到 `browseboard` Worker：
+
+1. **通过 API 脚本构建、校验并一键部署**：
+   ```bash
+   CLOUDFLARE_API_TOKEN=<你的Token> npm run deploy
+   ```
+2. **通过 Wrangler CLI 部署**（已内置 `wrangler.jsonc`）：
+   ```bash
+   npx wrangler deploy
+   ```

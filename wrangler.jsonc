@@ -1,0 +1,11 @@
+{
+  "name": "browseboard",
+  "account_id": "8de20a34e647448bf1dad9edec8eb655",
+  "main": "pkg/worker.js",
+  "compatibility_date": "2026-10-19",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": "./assets_current",
+    "binding": "ASSETS"
+  }
+}

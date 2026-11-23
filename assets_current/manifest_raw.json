@@ -1,78 +1,23 @@
 {
-  "/_next/static/chunks/097fcfz_magjp.js": {
-    "hash": "42e001cc2f9c01ca1c30c85f041e9ef7",
-    "size": 3586,
-    "content_type": "application/javascript"
-  },
-  "/_next/static/chunks/0b-0uenmbm1pe.js": {
-    "hash": "a466083444a9782cdc5f329f05b50081",
-    "size": 28346,
-    "content_type": "application/javascript"
-  },
-  "/_next/static/chunks/0cz1d0mv5g_q7.js": {
-    "hash": "0973c1d64c88adc8e3c950410cb58b28",
-    "size": 112594,
-    "content_type": "text/javascript"
-  },
-  "/_next/static/chunks/0z_5w_lk7_h-0.js": {
-    "hash": "da00e37bb2923659900d7a6b92f4b667",
-    "size": 539,
-    "content_type": "text/javascript"
-  },
-  "/_next/static/chunks/1-nqmp1rl8kqt.js": {
-    "hash": "cd8e8b5b5f9a280bd64064eca10fc2ac",
-    "size": 34043,
-    "content_type": "text/javascript"
-  },
-  "/_next/static/chunks/1_rvcu46_4k20.js": {
-    "hash": "34d82a49d94780837ea357e9d317102e",
-    "size": 28164,
-    "content_type": "application/javascript"
-  },
-  "/_next/static/chunks/1ckvzn7sfprko.js": {
-    "hash": "b5da0737b5325e403fc1e949b3439b5e",
-    "size": 5584,
-    "content_type": "text/javascript"
-  },
-  "/_next/static/chunks/2gvu8dyrhibpa.js": {
-    "hash": "a9a22d901d1ce816282743c970e289fc",
-    "size": 229597,
-    "content_type": "text/javascript"
-  },
-  "/_next/static/chunks/2xjrfn7kyy4t_.js": {
-    "hash": "5e1faa0b4e951404dafa1316accc584c",
-    "size": 22647,
-    "content_type": "application/javascript"
-  },
-  "/_next/static/chunks/34goyxc2anvlg.js": {
-    "hash": "ff301e64b9db38910aae979833b41466",
-    "size": 163051,
-    "content_type": "text/javascript"
-  },
-  "/_next/static/chunks/42jrnv_t82twh.js": {
-    "hash": "7bafc872669f9e4b0e869352dfbe28b4",
-    "size": 59726,
-    "content_type": "application/javascript"
-  },
-  "/_next/static/chunks/4583qnkd2m-l1.css": {
-    "hash": "a48e8c7572c369a6faebb5338f3dc52c",
-    "size": 65596,
+  "/assets/app.a0b8fdda79.css": {
+    "hash": "a0b8fdda7975dd54c214d14ce2595bd6",
+    "size": 46708,
     "content_type": "text/css"
   },
-  "/_next/static/chunks/turbopack-3-ry682tkyiqk.js": {
-    "hash": "8bbb58cbfd4633c1d828c6bc37bc32ab",
-    "size": 10030,
-    "content_type": "text/javascript"
-  },
-  "/_next/static/media/017d9bea37084d9b-s.p.41rroleoq1br7.woff2": {
-    "hash": "4fd48b2c1ab27220e71f15f990550261",
-    "size": 41236,
-    "content_type": "font/woff2"
+  "/assets/app.b7a90c73c3.js": {
+    "hash": "b7a90c73c3db745ddbc2b17ad2d0c917",
+    "size": 54460,
+    "content_type": "application/javascript"
   },
   "/browseboard.svg": {
     "hash": "15116006c92143c7b2a88a3fc18e5d59",
     "size": 456,
     "content_type": "image/svg+xml"
+  },
+  "/fonts/bricolage-grotesque.woff2": {
+    "hash": "4fd48b2c1ab27220e71f15f990550261",
+    "size": 41236,
+    "content_type": "font/woff2"
   },
   "/logos/agent-browser.png": {
     "hash": "3d7d267e05f2c13b9914805dffff2ce7",
@@ -165,6 +110,8 @@
     "content_type": "image/png"
   },
   "/wechat-qr.jpg": {
+    "hash": "ad3eebfc0f8ec09d2c9c4569de17b27c",
+    "size": 59538,
     "content_type": "image/jpeg"
   }
 }
