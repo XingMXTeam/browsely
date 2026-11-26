@@ -292,8 +292,8 @@ const cssHref = `/assets/${cssFilename}`;
 // 2. Build hashed Client JS (omit page-only about/sponsor copy from global bundle)
 const { DICT: FULL_DICT } = await import(path.join(SRC, "i18n", "dict.js"));
 const clientDictObj = {
-  en: { ...FULL_DICT.en, about: undefined, sponsor: undefined },
-  zh: { ...FULL_DICT.zh, about: undefined, sponsor: undefined }
+  en: { ...FULL_DICT.en, about: undefined, sponsor: undefined, skillPage: undefined, detail: undefined, notFound: undefined, meta: { title: FULL_DICT.en.meta.title } },
+  zh: { ...FULL_DICT.zh, about: undefined, sponsor: undefined, skillPage: undefined, detail: undefined, notFound: undefined, meta: { title: FULL_DICT.zh.meta.title } }
 };
 const dictSrc = stripModuleDirectives(fs.readFileSync(path.join(SRC, "i18n", "dict.js"), "utf8"));
 const clientDictSrc = dictSrc.replace(
@@ -326,6 +326,8 @@ const seedJson = fs.readFileSync(path.join(SRC, "data", "seed.json"), "utf8").tr
 const storiesJson = fs.readFileSync(path.join(SRC, "data", "stories.json"), "utf8").trim();
 
 const catalogSrc = stripModuleDirectives(fs.readFileSync(path.join(SRC, "data", "catalog.js"), "utf8"));
+const recommenderSrc = stripModuleDirectives(fs.readFileSync(path.join(SRC, "data", "recommender.js"), "utf8"));
+const skillSrc = stripModuleDirectives(fs.readFileSync(path.join(SRC, "server", "skill.js"), "utf8"));
 const iconsSrc = stripModuleDirectives(fs.readFileSync(path.join(SRC, "server", "icons.js"), "utf8"));
 const componentsSrc = stripModuleDirectives(fs.readFileSync(path.join(SRC, "server", "components.js"), "utf8"));
 const pagesSrc = stripModuleDirectives(fs.readFileSync(path.join(SRC, "server", "pages.js"), "utf8"));
@@ -342,6 +344,8 @@ const workerBundleRaw = [
   `const stories = ${storiesJson};`,
   dictSrc,
   catalogSrc,
+  recommenderSrc,
+  skillSrc,
   iconsSrc,
   componentsSrc,
   pagesSrc,
@@ -352,6 +356,56 @@ const workerBundleMin = stripJsCommentsAndBlankLines(workerBundleRaw) + "\n";
 fs.mkdirSync(path.dirname(PKG_OUT), { recursive: true });
 fs.writeFileSync(PKG_OUT, workerBundleMin, "utf8");
 execFileSync(process.execPath, ["--check", PKG_OUT], { stdio: "inherit" });
+
+// 4b. Sync repo-native installable Agent Skill (skills/momo-browserly-advisor/)
+const { getSkillMarkdown } = await import(path.join(SRC, "server", "skill.js"));
+const SKILL_OUT_DIR = path.join(ROOT, "skills", "momo-browserly-advisor");
+const SKILL_EVAL_CASES = {
+  version: 1,
+  skill: "momo-browserly-advisor",
+  note: "Trigger-precision golden cases compatible with XingMXTeam/agent-skills `harness skills eval` (~75% should-trigger, ~25% should-not-trigger).",
+  cases: [
+    {
+      id: "BA1",
+      prompt: "Which browser MCP server should I connect to Claude Code if I need to reuse my already logged-in Chrome tabs locally?",
+      expect: "momo-browserly-advisor"
+    },
+    {
+      id: "BA2",
+      prompt: "Compare Browser Use, Stagehand, and Skyvern for an unattended cloud scraping pipeline behind Cloudflare.",
+      expect: "momo-browserly-advisor"
+    },
+    {
+      id: "BA3",
+      prompt: "帮我选一个免费的开源浏览器 Agent，要求数据不出内网、MIT/Apache-2.0 协议且支持 MCP。",
+      expect: "momo-browserly-advisor"
+    },
+    {
+      id: "BA4",
+      prompt: "Our target site is mostly canvas/complex visual UI — what vision or hybrid browser agent fits best?",
+      expect: "momo-browserly-advisor"
+    },
+    {
+      id: "BA5",
+      prompt: "We need an AI agent to operate our logged-in WeChat / ERP backend without uploading passwords to the cloud.",
+      expect: "momo-browserly-advisor"
+    },
+    {
+      id: "BA6",
+      prompt: "Run our existing e2e-cases.json Playwright suite and score the rubric for checkout cycle 2.",
+      expect: "e2e-testing"
+    },
+    {
+      id: "BA7",
+      prompt: "Verify our REST API response schema and status codes for POST /api/orders.",
+      expect: "api-testing"
+    }
+  ]
+};
+fs.mkdirSync(SKILL_OUT_DIR, { recursive: true });
+fs.writeFileSync(path.join(SKILL_OUT_DIR, "SKILL.md"), getSkillMarkdown("en"), "utf8");
+fs.writeFileSync(path.join(SKILL_OUT_DIR, "SKILL.zh-CN.md"), getSkillMarkdown("zh"), "utf8");
+fs.writeFileSync(path.join(SKILL_OUT_DIR, "eval-cases.json"), JSON.stringify(SKILL_EVAL_CASES, null, 2) + "\n", "utf8");
 
 // 5. Rebuild manifest_raw.json for Cloudflare Workers Static Assets
 fs.rmSync(path.join(ASSETS, "api"), { recursive: true, force: true });

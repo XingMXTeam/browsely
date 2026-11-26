@@ -35,7 +35,8 @@ import {
   iconChevronRight,
   iconClose,
   iconCopy,
-  iconExternal
+  iconExternal,
+  iconSparkles
 } from "./icons.js";
 
 function renderMarqueeRow(agents, reverse = false) {
@@ -152,9 +153,44 @@ export function renderHomePage(catalog, locale, dict, assets, initialQuery = "")
   const sampleLlms = [
     "# Browserly",
     "> Comparison matrix of browser-driving agents.",
-    "- /api/agents : JSON catalog (17 rows)",
-    "- /about      : Methodology & unknowns",
-    "- /agent/{id} : Full verified dossier"
+    "- /api/recommend : Deterministic selector API",
+    "- /SKILL.md      : Installable Agent Skill",
+    "- /api/agents    : JSON catalog (17 rows)"
+  ].join("\n");
+
+  const sampleSkillInstall = [
+    "# Antigravity / Claude Code / Codex / Cursor",
+    "npx skills add XingMXTeam/browsely",
+    "",
+    "# Or fetch directly via URL",
+    "curl -fsSL https://browserly.maoxunxing.com/SKILL.md"
+  ].join("\n");
+
+  const sampleSkillPreview = [
+    "---",
+    "name: momo-browserly-advisor",
+    "---",
+    "1. Inspect repo (.mcp.json, Playwright, stack)",
+    "2. Clarify auth / hosting / MCP / license",
+    "3. Query /api/recommend (offline snapshot fallback)",
+    "4. Output Primary Pick + Why-Not + Caveats"
+  ].join("\n");
+
+  const sampleRecommendCmd = [
+    "curl -s \"https://browserly.maoxunxing.com/api/recommend\\",
+    "?useCase=coding-agent&auth=local-session\\",
+    "&hosting=self-host&mcp=required&budget=free-oss\""
+  ].join("\n");
+
+  const sampleRecommendOut = [
+    "{",
+    "  \"matchedCount\": 7, \"excludedCount\": 10,",
+    "  \"picks\": [",
+    "    { \"rank\": 1, \"id\": \"playwright-mcp\", \"score\": 99 },",
+    "    { \"rank\": 2, \"id\": \"agent-browser\",  \"score\": 98 }",
+    "  ],",
+    "  \"excluded\": [{ \"id\": \"skyvern\", \"reasonCode\": \"no_local_session\" }]",
+    "}"
   ].join("\n");
 
   const row1 = agents.slice(0, 9);
@@ -175,10 +211,30 @@ ${renderHeader({ locale, dict, currentPath: "/", searchQuery: initialQuery })}
       <p class="bb-wordmark fade-up delay-1">${BRAND_NAME}</p>
       <h1 class="type-hero fade-up delay-1" data-i18n="home.title">${esc(dict.home.title)}</h1>
       <p class="hero-subtitle fade-up delay-2" data-i18n="home.subtitle">${esc(dict.home.subtitle)}</p>
+      <div class="hero-quickcopy fade-up delay-2" id="hero-quickcopy">
+        <div class="qc-head">
+          <div class="qc-modes" role="tablist" aria-label="${esc(dict.nav.skill)}">
+            <button type="button" class="qc-mode" role="tab" data-qc-mode="prompt" aria-selected="true" data-i18n="home.quickCopy.modePrompt">${esc(dict.home.quickCopy.modePrompt)}</button>
+            <button type="button" class="qc-mode" role="tab" data-qc-mode="cli" aria-selected="false" data-i18n="home.quickCopy.modeCli">${esc(dict.home.quickCopy.modeCli)}</button>
+          </div>
+          <a href="/skill" class="qc-doc-link" data-i18n="apiBand.openSkill">${esc(dict.apiBand.openSkill)} →</a>
+        </div>
+        <div class="qc-row">
+          <code class="qc-code" id="hero-qc-code">${esc(dict.home.quickCopy.promptText)}</code>
+          <button type="button" class="btn btn-lime qc-copy-btn" id="hero-qc-copy" data-copy="${esc(dict.home.quickCopy.promptText)}" data-copy-default="home.quickCopy.copyBtn" data-copy-done="home.quickCopy.copiedBtn" data-copy-toast="home.quickCopy.copiedToast">
+            ${iconCopy()}
+            <span>${esc(dict.home.quickCopy.copyBtn)}</span>
+          </button>
+        </div>
+        <p class="qc-hint" id="hero-qc-hint">${esc(dict.home.quickCopy.hintPrompt)}</p>
+      </div>
       <div class="hero-actions fade-up delay-2">
-        <a href="#catalog" class="btn btn-primary" data-i18n="home.browse">${esc(dict.home.browse)}</a>
-        <button type="button" class="btn btn-lime" id="compare-top-btn" data-i18n="home.compareTop">${esc(dict.home.compareTop)}</button>
-        <a href="${esc(SUBMIT_URL)}" class="btn btn-ghost" data-i18n="home.submit">${esc(dict.home.submit)}</a>
+        <button type="button" class="btn btn-primary" id="open-advisor-btn" data-open-advisor>
+          ${iconSparkles()}
+          <span data-i18n="home.findAgent">${esc(dict.home.findAgent)}</span>
+        </button>
+        <a href="#catalog" class="btn btn-ghost" data-i18n="home.browse">${esc(dict.home.browse)}</a>
+        <button type="button" class="btn btn-ghost" id="compare-top-btn" data-i18n="home.compareTop">${esc(dict.home.compareTop)}</button>
       </div>
       <div class="hero-stats fade-up delay-3" aria-label="${esc(dict.home.comparison)}">
         <div class="stat-cell">
@@ -290,43 +346,98 @@ ${renderHeader({ locale, dict, currentPath: "/", searchQuery: initialQuery })}
       </div>
     </div>
 
-    <section class="api-band" aria-label="${esc(dict.apiBand.badge)}">
+    <section id="skill-api" class="api-band" aria-label="${esc(dict.apiBand.badge)}">
       <div class="api-band-grid">
         <div>
           <span class="api-eyebrow" data-i18n="apiBand.badge">${esc(dict.apiBand.badge)}</span>
           <h2 class="api-title" data-i18n="apiBand.title">${esc(dict.apiBand.title)}</h2>
           <p class="api-desc" data-i18n="apiBand.desc">${esc(dict.apiBand.desc)}</p>
           <div class="api-actions">
-            <a href="/api/agents" target="_blank" rel="noreferrer" class="btn btn-lime">
-              <span data-i18n="apiBand.openJson">${esc(dict.apiBand.openJson)}</span>
-              ${iconExternal()}
+            <button type="button" class="btn btn-lime" data-open-advisor>
+              ${iconSparkles()}
+              <span data-i18n="apiBand.openFinder">${esc(dict.apiBand.openFinder)}</span>
+            </button>
+            <a href="/skill" class="btn btn-ghost api-ghost-btn" id="api-skill-link">
+              <span data-i18n="apiBand.openSkill">${esc(dict.apiBand.openSkill)}</span>
+              ${iconArrowRight()}
             </a>
-            <a href="/llms.txt" target="_blank" rel="noreferrer" class="btn btn-ghost" style="background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.22);">
+            <a href="/llms.txt" target="_blank" rel="noreferrer" class="btn btn-ghost api-ghost-btn">
               <span data-i18n="apiBand.openLlms">${esc(dict.apiBand.openLlms)}</span>
               ${iconExternal()}
             </a>
           </div>
         </div>
-        <div class="api-cards">
-          <div class="api-card">
-            <div class="api-card-head">
-              <span class="api-endpoint">GET /api/agents</span>
-              <button type="button" class="api-copy-btn" data-copy="https://browserly.maoxunxing.com/api/agents" data-copy-default="apiBand.copy" data-copy-done="apiBand.copied">
-                ${iconCopy()}
-                <span>${esc(dict.apiBand.copy)}</span>
-              </button>
-            </div>
-            <pre class="api-pre"><code>${esc(sampleJson)}</code></pre>
+        <div class="api-pane-wrap">
+          <div class="api-tabs" role="tablist" aria-label="${esc(dict.apiBand.badge)}">
+            <button type="button" class="api-tab" role="tab" data-api-tab="skill" aria-selected="true" data-i18n="apiBand.tabSkill">${esc(dict.apiBand.tabSkill)}</button>
+            <button type="button" class="api-tab" role="tab" data-api-tab="recommend" aria-selected="false" data-i18n="apiBand.tabRecommend">${esc(dict.apiBand.tabRecommend)}</button>
+            <button type="button" class="api-tab" role="tab" data-api-tab="catalog" aria-selected="false" data-i18n="apiBand.tabCatalog">${esc(dict.apiBand.tabCatalog)}</button>
           </div>
-          <div class="api-card">
-            <div class="api-card-head">
-              <span class="api-endpoint">GET /llms.txt</span>
-              <button type="button" class="api-copy-btn" data-copy="https://browserly.maoxunxing.com/llms.txt" data-copy-default="apiBand.copy" data-copy-done="apiBand.copied">
-                ${iconCopy()}
-                <span>${esc(dict.apiBand.copy)}</span>
-              </button>
+          <div class="api-cards" data-api-panel="skill">
+            <div class="api-card">
+              <div class="api-card-head">
+                <span class="api-endpoint">npx skills add</span>
+                <button type="button" class="api-copy-btn" data-copy="npx skills add XingMXTeam/browsely" data-copy-default="apiBand.copy" data-copy-done="apiBand.copied">
+                  ${iconCopy()}
+                  <span>${esc(dict.apiBand.copy)}</span>
+                </button>
+              </div>
+              <pre class="api-pre"><code>${esc(sampleSkillInstall)}</code></pre>
             </div>
-            <pre class="api-pre"><code>${esc(sampleLlms)}</code></pre>
+            <div class="api-card">
+              <div class="api-card-head">
+                <span class="api-endpoint">GET /SKILL.md</span>
+                <button type="button" class="api-copy-btn" id="api-skill-copy-btn" data-copy="https://browserly.maoxunxing.com/${locale === "zh" ? "SKILL.zh-CN.md" : "SKILL.md"}" data-copy-default="apiBand.copy" data-copy-done="apiBand.copied">
+                  ${iconCopy()}
+                  <span>${esc(dict.apiBand.copy)}</span>
+                </button>
+              </div>
+              <pre class="api-pre"><code>${esc(sampleSkillPreview)}</code></pre>
+            </div>
+          </div>
+          <div class="api-cards" data-api-panel="recommend" hidden>
+            <div class="api-card">
+              <div class="api-card-head">
+                <span class="api-endpoint">GET /api/recommend</span>
+                <button type="button" class="api-copy-btn" data-copy="https://browserly.maoxunxing.com/api/recommend?useCase=coding-agent&auth=local-session&hosting=self-host&mcp=required&budget=free-oss" data-copy-default="apiBand.copy" data-copy-done="apiBand.copied">
+                  ${iconCopy()}
+                  <span>${esc(dict.apiBand.copy)}</span>
+                </button>
+              </div>
+              <pre class="api-pre"><code>${esc(sampleRecommendCmd)}</code></pre>
+            </div>
+            <div class="api-card">
+              <div class="api-card-head">
+                <span class="api-endpoint">200 application/json</span>
+                <a href="/api/recommend?useCase=coding-agent&amp;auth=local-session&amp;hosting=self-host&amp;mcp=required&amp;budget=free-oss" target="_blank" rel="noreferrer" class="api-copy-btn">
+                  <span>JSON</span>
+                  ${iconExternal()}
+                </a>
+              </div>
+              <pre class="api-pre"><code>${esc(sampleRecommendOut)}</code></pre>
+            </div>
+          </div>
+          <div class="api-cards" data-api-panel="catalog" hidden>
+            <div class="api-card">
+              <div class="api-card-head">
+                <span class="api-endpoint">GET /api/agents</span>
+                <button type="button" class="api-copy-btn" data-copy="https://browserly.maoxunxing.com/api/agents" data-copy-default="apiBand.copy" data-copy-done="apiBand.copied">
+                  ${iconCopy()}
+                  <span>${esc(dict.apiBand.copy)}</span>
+                </button>
+              </div>
+              <pre class="api-pre"><code>${esc(sampleJson)}</code></pre>
+            </div>
+            <div class="api-card">
+              <div class="api-card-head">
+                <span class="api-endpoint">GET /llms.txt</span>
+                <button type="button" class="api-copy-btn" data-copy="https://browserly.maoxunxing.com/llms.txt" data-copy-default="apiBand.copy" data-copy-done="apiBand.copied">
+                  ${iconCopy()}
+                  <span>${esc(dict.apiBand.copy)}</span>
+                </button>
+              </div>
+              <pre class="api-pre"><code>${esc(sampleLlms)}</code></pre>
+            </div>
           </div>
         </div>
       </div>
@@ -341,6 +452,23 @@ ${renderHomeFooter({ agents, coverage, locale, dict })}
   <div class="dock-actions">
     <button type="button" class="dock-clear-btn" id="dock-clear-btn" data-i18n="compare.clear">${esc(dict.compare.clear)}</button>
     <button type="button" class="dock-compare-btn" id="dock-open-btn"></button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="advisor-modal-backdrop" aria-hidden="true">
+  <div class="compare-modal advisor-modal" role="dialog" aria-modal="true" aria-labelledby="advisor-modal-title">
+    <div class="modal-head">
+      <div style="min-width:0;">
+        <span class="advisor-eyebrow" data-i18n="advisor.badge">${esc(dict.advisor.badge)}</span>
+        <h2 id="advisor-modal-title" style="font-size:1.2rem;font-weight:700;letter-spacing:-0.03em;margin-top:0.2rem;" data-i18n="advisor.title">${esc(dict.advisor.title)}</h2>
+        <p style="font-size:0.82rem;color:var(--ink-muted);" data-i18n="advisor.subtitle">${esc(dict.advisor.subtitle)}</p>
+      </div>
+      <button type="button" class="modal-close-btn" id="advisor-modal-close" aria-label="${esc(dict.advisor.close)}" data-i18n-aria="advisor.close">${iconClose()}</button>
+    </div>
+    <div class="advisor-layout">
+      <div class="advisor-controls" id="advisor-controls"></div>
+      <div class="advisor-results" id="advisor-results"></div>
+    </div>
   </div>
 </div>
 
@@ -658,7 +786,10 @@ ${renderDetailFooter({ dict })}
     jsHref: assets.jsHref,
     pageType: "agent",
     body,
-    inlineScripts: [{ id: "__BROWSLY_AGENT__", data: agentPayload }]
+    inlineScripts: [
+      { id: "__BROWSLY_AGENT__", data: agentPayload },
+      { id: "__BROWSLY_I18N__", data: { key: "detail", en: DICT.en.detail, zh: DICT.zh.detail } }
+    ]
   });
 }
 
@@ -810,6 +941,128 @@ ${renderSimpleFooter({ coverage, dict })}
     body,
     inlineScripts: [
       { id: "__BROWSLY_I18N__", data: { key: "sponsor", en: DICT.en.sponsor, zh: DICT.zh.sponsor } }
+    ]
+  });
+}
+
+export function renderSkillPage(catalog, locale, dict, assets) {
+  const { checked, coverage, agents } = catalog;
+  const sp = dict.skillPage;
+  const qc = dict.home.quickCopy;
+  const rawEndpoints = [
+    { path: "/SKILL.md", desc: "English Agent Skill (YAML frontmatter + workflow + offline snapshot)" },
+    { path: "/SKILL.zh-CN.md", desc: "简体中文 Agent Skill（完整选型规则 + 17 项离线核验表）" },
+    { path: "/api/recommend?useCase=coding-agent&auth=local-session&hosting=self-host&mcp=required&budget=free-oss", desc: "Deterministic 6-axis selection API (JSON + CORS)" },
+    { path: "/api/agents", desc: `Verified raw matrix catalog (${agents.length} rows, JSON)` },
+    { path: "/llms.txt", desc: "Machine-readable LLM index" }
+  ];
+
+  const body = `
+<div class="scroll-progress" aria-hidden="true"><span></span></div>
+${renderHeader({ locale, dict, currentPath: "/skill" })}
+<main class="container-narrow page-main">
+  <header style="display:flex;flex-direction:column;gap:0.85rem;align-items:flex-start;">
+    <span class="advisor-eyebrow" data-i18n="skillPage.badge">${esc(sp.badge)}</span>
+    <h1 class="type-page" data-i18n="skillPage.title">${esc(sp.title)}</h1>
+    <p style="max-width:66ch;font-size:1.05rem;line-height:1.68;color:var(--ink-2);" data-i18n="skillPage.lead">${esc(sp.lead)}</p>
+    <div style="display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:0.2rem;">
+      <a href="/?advisor=1" class="btn btn-lime">
+        ${iconSparkles()}
+        <span data-i18n="skillPage.tryFinder">${esc(sp.tryFinder)}</span>
+      </a>
+      <a href="/SKILL.zh-CN.md" target="_blank" rel="noreferrer" class="btn btn-ghost">SKILL.zh-CN.md ${iconExternal()}</a>
+      <a href="/SKILL.md" target="_blank" rel="noreferrer" class="btn btn-ghost">SKILL.md ${iconExternal()}</a>
+    </div>
+  </header>
+
+  <section class="dossier-card">
+    <h2 style="font-size:1.15rem;font-weight:700;" data-i18n="skillPage.waysTitle">${esc(sp.waysTitle)}</h2>
+    <div class="skill-ways-grid">
+      <div class="skill-way-card is-featured">
+        <span class="badge badge--lime" data-i18n="skillPage.way1Badge">${esc(sp.way1Badge)}</span>
+        <h3 style="font-size:1rem;font-weight:700;" data-i18n="skillPage.way1Title">${esc(sp.way1Title)}</h3>
+        <p style="font-size:0.86rem;line-height:1.6;color:var(--ink-2);" data-i18n="skillPage.way1Desc">${esc(sp.way1Desc)}</p>
+        <div class="skill-copy-box">
+          <code id="skill-page-prompt">${esc(qc.promptText)}</code>
+          <button type="button" class="btn btn-lime btn-sm" id="skill-page-prompt-btn" data-copy="${esc(qc.promptText)}" data-copy-default="home.quickCopy.copyBtn" data-copy-done="home.quickCopy.copiedBtn" data-copy-toast="home.quickCopy.copiedToast">
+            ${iconCopy()}
+            <span>${esc(qc.copyBtn)}</span>
+          </button>
+        </div>
+      </div>
+      <div class="skill-way-card">
+        <span class="badge badge--info" data-i18n="skillPage.way2Badge">${esc(sp.way2Badge)}</span>
+        <h3 style="font-size:1rem;font-weight:700;" data-i18n="skillPage.way2Title">${esc(sp.way2Title)}</h3>
+        <p style="font-size:0.86rem;line-height:1.6;color:var(--ink-2);" data-i18n="skillPage.way2Desc">${esc(sp.way2Desc)}</p>
+        <div class="skill-copy-box">
+          <code>${esc(qc.cliText)}</code>
+          <button type="button" class="btn btn-primary btn-sm" data-copy="${esc(qc.cliText)}" data-copy-default="home.quickCopy.copyBtn" data-copy-done="home.quickCopy.copiedBtn" data-copy-toast="home.quickCopy.copiedToast">
+            ${iconCopy()}
+            <span>${esc(qc.copyBtn)}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dossier-card">
+    <h2 style="font-size:1.15rem;font-weight:700;" data-i18n="skillPage.demoTitle">${esc(sp.demoTitle)}</h2>
+    <p style="margin-top:0.25rem;font-size:0.9rem;color:var(--ink-muted);" data-i18n="skillPage.demoDesc">${esc(sp.demoDesc)}</p>
+    <ol class="skill-chat" id="skill-demo-steps">
+      ${sp.demoSteps
+        .map(
+          (step, i) => `<li class="skill-chat-item">
+            <span class="skill-chat-role" data-i18n="skillPage.demoSteps.${i}.role">${esc(step.role)}</span>
+            <p class="skill-chat-text" data-i18n="skillPage.demoSteps.${i}.text">${esc(step.text)}</p>
+          </li>`
+        )
+        .join("")}
+    </ol>
+  </section>
+
+  <section class="dossier-card">
+    <h2 style="font-size:1.15rem;font-weight:700;" data-i18n="skillPage.rawTitle">${esc(sp.rawTitle)}</h2>
+    <p style="margin-top:0.25rem;font-size:0.9rem;color:var(--ink-muted);" data-i18n="skillPage.rawDesc">${esc(sp.rawDesc)}</p>
+    <p style="margin-top:0.35rem;font-size:0.78rem;color:var(--ink-muted);font-family:var(--font-mono);">as_of: ${esc(checked)} · ${agents.length} verified agents</p>
+    <ul class="skill-endpoints">
+      ${rawEndpoints
+        .map(
+          (ep) => `<li class="skill-ep-row">
+            <div style="min-width:0;flex:1;">
+              <a href="${esc(ep.path)}" target="_blank" rel="noreferrer" class="skill-ep-path">${esc(ep.path)}</a>
+              <p style="font-size:0.82rem;color:var(--ink-muted);margin-top:0.15rem;">${esc(ep.desc)}</p>
+            </div>
+            <div style="display:flex;gap:0.4rem;flex:none;">
+              <button type="button" class="btn btn-ghost btn-sm" data-copy="https://browserly.maoxunxing.com${esc(ep.path)}" data-copy-default="apiBand.copy" data-copy-done="apiBand.copied">
+                ${iconCopy()}
+                <span>${esc(dict.apiBand.copy)}</span>
+              </button>
+              <a href="${esc(ep.path)}" target="_blank" rel="noreferrer" class="btn btn-ghost btn-sm">
+                <span data-i18n="skillPage.openRaw">${esc(sp.openRaw)}</span>
+                ${iconExternal()}
+              </a>
+            </div>
+          </li>`
+        )
+        .join("")}
+    </ul>
+  </section>
+</main>
+${renderSimpleFooter({ coverage, dict })}
+<div class="toast-pill" id="toast-pill" role="status" aria-live="polite"></div>
+`;
+
+  return renderDocument({
+    title: `${sp.title} — ${BRAND_NAME}`,
+    description: sp.description,
+    locale,
+    path: "/skill",
+    cssHref: assets.cssHref,
+    jsHref: assets.jsHref,
+    pageType: "skill",
+    body,
+    inlineScripts: [
+      { id: "__BROWSLY_I18N__", data: { key: "skillPage", en: DICT.en.skillPage, zh: DICT.zh.skillPage } }
     ]
   });
 }

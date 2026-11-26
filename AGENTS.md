@@ -10,17 +10,21 @@ src/
     seed.json          # Single source of truth: agent rows, verification dates, sources, changelog, exclusions
     stories.json       # Curated Chinese editorial verdicts & deep-dive breakdowns for /agent/:id
     catalog.js         # Data normalizer, LOGO_MAP, pastel palette, /api/agents & /llms.txt serializers
+    recommender.js     # Deterministic 6-axis solution selection engine powering /api/recommend and the Web Finder
   i18n/
     dict.js            # EN & ZH UI copy, enum label helpers, and semantic badge tone rules
   styles/
     app.css            # Complete editorial design system, responsive grids, and subtle GPU micro-animations
   client/
-    app.js             # Zero-dependency client runtime (search, presets, filters, cards/table, compare modal, demo drawer, instant EN/ZH toggle)
+    app.js             # Zero-dependency client runtime (search, presets, filters, cards/table, compare modal, 30s Solution Finder, demo drawer, instant EN/ZH toggle)
   server/
     icons.js           # Inline SVG icon helpers
+    skill.js           # Bilingual momo-browserly-advisor Agent Skill generator (/SKILL.md & /SKILL.zh-CN.md) with auto-synced offline snapshot
     components.js      # HTML escaper, document shell, unified header, agent cards, footers, WeChat block
     pages.js           # SSR renderers for /, /agent/:id, /about, /sponsor, and 404
-    worker.js          # Cloudflare Worker fetch router & locale negotiation
+    worker.js          # Cloudflare Worker fetch router (/api/agents, /api/recommend, /SKILL.md, /llms.txt, SSR) & locale negotiation
+skills/
+  momo-browserly-advisor/   # Auto-synced installable Agent Skill (SKILL.md, SKILL.zh-CN.md, eval-cases.json) for `npx skills add XingMXTeam/browsely`
 scripts/
   build.mjs            # Compiles & minifies CSS, client JS, pkg/worker.js, and regenerates assets_current/manifest_raw.json
   dev.mjs              # Local HTTP preview server executing compiled pkg/worker.js against assets_current/ on port 8787
@@ -72,7 +76,7 @@ upload_and_version.py  # Direct Cloudflare API asset uploader & Worker version d
 - **Epistemic Honesty:** Never guess unverified capabilities or prices; mark them `unknown` (rendered with a dashed border).
 - **Zero External Runtime Dependencies:** Keep `src/` and `scripts/` dependency-free so builds and tests run instantaneously in any Node.js environment.
 - **Performance Budgets (enforced by `scripts/verify.mjs`):**
-  - `pkg/worker.js` < 160 KB raw
-  - CSS bundle < 46 KB raw / < 10 KB gzip
-  - Client JS bundle < 55 KB raw / < 18 KB gzip
-  - Homepage SSR HTML < 135 KB raw / < 28 KB gzip
+  - `pkg/worker.js` < 190 KB raw
+  - CSS bundle < 54 KB raw / < 10.5 KB gzip
+  - Client JS bundle < 72 KB raw / < 21 KB gzip
+  - Homepage SSR HTML < 148 KB raw / < 25 KB gzip

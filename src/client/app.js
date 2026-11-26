@@ -189,6 +189,11 @@ function parseJsonScript(id) {
       const cov = document.querySelector("[data-coverage-text]");
       if (cov) cov.textContent = nextLocale === "zh" ? homeData.coverage.zh : homeData.coverage.en;
 
+      const skillFile = nextLocale === "zh" ? "SKILL.zh-CN.md" : "SKILL.md";
+      const skillCopy = document.getElementById("api-skill-copy-btn");
+      if (skillCopy) skillCopy.dataset.copy = `https://browserly.maoxunxing.com/${skillFile}`;
+      syncHeroQuickCopy(nextLocale);
+
       document.querySelectorAll("[data-filter-group]").forEach((input) => {
         const grp = input.dataset.filterGroup;
         const val = input.value;
@@ -201,6 +206,12 @@ function parseJsonScript(id) {
       });
 
       document.title = dict.meta.title;
+    } else if (pageType === "skill") {
+      document.title = `${dict.skillPage.title} — Browserly`;
+      const spPrompt = document.getElementById("skill-page-prompt");
+      const spBtn = document.getElementById("skill-page-prompt-btn");
+      if (spPrompt) spPrompt.textContent = dict.home.quickCopy.promptText;
+      if (spBtn) spBtn.dataset.copy = dict.home.quickCopy.promptText;
     } else if (pageType === "about") {
       document.title = `${dict.about.title} — Browserly`;
       const legendBadges = document.querySelectorAll("#about-legend .badge span:last-child");
@@ -229,6 +240,10 @@ function parseJsonScript(id) {
       renderCatalog();
       renderCompareDock();
       if (isCompareModalOpen()) renderCompareModal();
+      if (isAdvisorModalOpen()) {
+        renderAdvisorControls();
+        fetchAdvisorResults();
+      }
       if (state.demoAgentId) renderDemoDrawer(state.demoAgentId);
     }
   }
@@ -237,30 +252,61 @@ function parseJsonScript(id) {
     btn.addEventListener("click", () => setLocale(btn.dataset.setLocale, true));
   });
 
+  let heroQcMode = "prompt";
+  function syncHeroQuickCopy(loc = locale) {
+    const qc = DICT[loc].home.quickCopy;
+    const codeEl = document.getElementById("hero-qc-code");
+    const copyEl = document.getElementById("hero-qc-copy");
+    const hintEl = document.getElementById("hero-qc-hint");
+    if (!codeEl || !copyEl || !hintEl) return;
+    const isCli = heroQcMode === "cli";
+    const text = isCli ? qc.cliText : qc.promptText;
+    codeEl.textContent = text;
+    copyEl.dataset.copy = text;
+    hintEl.textContent = isCli ? qc.hintCli : qc.hintPrompt;
+    document.querySelectorAll("[data-qc-mode]").forEach((btn) => {
+      btn.setAttribute("aria-selected", btn.dataset.qcMode === heroQcMode ? "true" : "false");
+    });
+  }
+  document.querySelectorAll("[data-qc-mode]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      heroQcMode = btn.dataset.qcMode === "cli" ? "cli" : "prompt";
+      syncHeroQuickCopy(locale);
+    });
+  });
+
   /* ---------- Copy Buttons ---------- */
-  document.addEventListener("click", async (ev) => {
-    const btn = ev.target.closest("[data-copy]");
-    if (!btn) return;
-    const text = btn.dataset.copy;
-    if (!text) return;
+  async function copyText(text) {
     try {
       await navigator.clipboard.writeText(text);
     } catch {
       const ta = document.createElement("textarea");
       ta.value = text;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
+      ta.style.cssText = "position:fixed;opacity:0";
       document.body.appendChild(ta);
       ta.select();
       document.execCommand("copy");
       ta.remove();
     }
+  }
+
+  document.addEventListener("click", async (ev) => {
+    const btn = ev.target.closest("[data-copy]");
+    if (!btn) return;
+    const text = btn.dataset.copy;
+    if (!text) return;
+    await copyText(text);
     const dict = DICT[locale];
     const span = btn.querySelector("span");
     const doneKey = btn.dataset.copyDone;
     const defKey = btn.dataset.copyDefault;
+    const toastKey = btn.dataset.copyToast;
     if (span && doneKey) {
       span.textContent = getByPath(dict, doneKey) || "Copied";
+    }
+    if (toastKey) {
+      const msg = getByPath(dict, toastKey);
+      if (typeof msg === "string") showToast(msg);
     }
     btn.classList.add("is-copied");
     window.setTimeout(() => {
@@ -347,8 +393,9 @@ function parseJsonScript(id) {
         ev.preventDefault();
         searchInput.focus();
       }
-    } else if (ev.key === "Escape") {
-      if (isCompareModalOpen()) closeCompareModal();
+    } else if (ev.key === "Escape" && homeData) {
+      if (isAdvisorModalOpen()) closeAdvisorModal();
+      else if (isCompareModalOpen()) closeCompareModal();
       else if (state.demoAgentId) closeDemoDrawer();
     }
   });
@@ -1276,6 +1323,284 @@ function renderEvidencePanel(agent, showTitle = true) {
   demoCloseBtn?.addEventListener("click", closeDemoDrawer);
   demoBackdrop?.addEventListener("click", closeDemoDrawer);
 
+  /* ---------- API Showcase Tabs & 30s Solution Finder ---------- */
+  document.querySelectorAll("[data-api-tab]").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.apiTab;
+      document.querySelectorAll("[data-api-tab]").forEach((t) => {
+        t.setAttribute("aria-selected", t.dataset.apiTab === target ? "true" : "false");
+      });
+      document.querySelectorAll("[data-api-panel]").forEach((p) => {
+        p.hidden = p.dataset.apiPanel !== target;
+      });
+    });
+  });
+
+  const advisorBackdrop = document.getElementById("advisor-modal-backdrop");
+  const advisorControlsEl = document.getElementById("advisor-controls");
+  const advisorResultsEl = document.getElementById("advisor-results");
+  const advisorCloseBtn = document.getElementById("advisor-modal-close");
+
+  const ADVISOR_AXES = [
+    ["useCase", ["coding-agent", "logged-in-ops", "headless-pipeline", "visual-canvas", "hard-antibot", "any"]],
+    ["auth", ["any", "local-session", "isolated-profile", "cloud-vault"]],
+    ["hosting", ["any", "self-host", "cloud"]],
+    ["mcp", ["any", "required", "preferred", "sdk-cli"]],
+    ["antiBot", ["any", "none", "login-reuse", "stealth-captcha"]],
+    ["budget", ["any", "free-oss", "oss-any", "paid-ok"]]
+  ];
+
+  const ADVISOR_PRESETS = {
+    "coding-agent": { auth: "local-session", hosting: "self-host", mcp: "required", antiBot: "none", budget: "free-oss" },
+    "logged-in-ops": { auth: "local-session", hosting: "self-host", mcp: "preferred", antiBot: "login-reuse", budget: "free-oss" },
+    "headless-pipeline": { auth: "cloud-vault", hosting: "cloud", mcp: "preferred", antiBot: "stealth-captcha", budget: "paid-ok" },
+    "visual-canvas": { auth: "any", hosting: "any", mcp: "any", antiBot: "any", budget: "paid-ok" },
+    "hard-antibot": { auth: "any", hosting: "any", mcp: "any", antiBot: "stealth-captcha", budget: "any" },
+    any: { auth: "any", hosting: "any", mcp: "any", antiBot: "any", budget: "any" }
+  };
+
+  const advisorState = {
+    useCase: "coding-agent",
+    auth: "local-session",
+    hosting: "self-host",
+    mcp: "required",
+    antiBot: "none",
+    budget: "free-oss"
+  };
+  let advisorReqSeq = 0;
+  let advisorLastPicks = [];
+  let advisorLastApiUrl = "https://browserly.maoxunxing.com/api/recommend";
+
+  function buildAdvisorAiPrompt() {
+    const adv = DICT[locale].advisor;
+    const active = ADVISOR_AXES.filter(([axis]) => advisorState[axis] && advisorState[axis] !== "any").map(
+      ([axis]) => adv.opts[axis][advisorState[axis]] || advisorState[axis]
+    );
+    const pickNames = advisorLastPicks.map((id) => agentMap.get(id)?.name || id).join(", ");
+    if (locale === "zh") {
+      return `我刚刚在 Browserly 按【${active.join(" / ") || "全部条件"}】筛出候选方案（${pickNames || "详见接口"}），完整一手核验与避坑数据见：${advisorLastApiUrl}（规范见 https://browserly.maoxunxing.com/SKILL.zh-CN.md ）。请结合我当前项目环境帮我最终拍板，并给出最小可跑通的接入步骤。`;
+    }
+    return `I shortlisted browser agents on Browserly for [${active.join(" / ") || "all criteria"}] (${pickNames || "see API"}). Full verified specs, exclusions & caveats: ${advisorLastApiUrl} (playbook: https://browserly.maoxunxing.com/SKILL.md). Inspect my current workspace, help me finalize the choice, and give me the minimal setup steps.`;
+  }
+
+  function isAdvisorModalOpen() {
+    return Boolean(advisorBackdrop && advisorBackdrop.classList.contains("is-open"));
+  }
+
+  function renderAdvisorControls() {
+    if (!advisorControlsEl) return;
+    const adv = DICT[locale].advisor;
+    const groups = ADVISOR_AXES.map(([axis, opts]) => {
+      const pills = opts
+        .map(
+          (val) =>
+            `<button type="button" class="advisor-pill" data-adv-axis="${esc(axis)}" data-adv-val="${esc(val)}" aria-pressed="${advisorState[axis] === val ? "true" : "false"}">${esc(adv.opts[axis][val] || val)}</button>`
+        )
+        .join("");
+      return `<div><div class="advisor-group-title">${esc(adv.axes[axis])}</div><div class="advisor-pills">${pills}</div></div>`;
+    }).join("");
+
+    advisorControlsEl.innerHTML = `${groups}
+      <div class="advisor-ctrl-foot">
+        <button type="button" class="btn btn-ghost btn-sm" id="advisor-reset-btn">${esc(adv.reset)}</button>
+        <button type="button" class="btn btn-primary btn-sm" id="advisor-copy-prompt-btn">${esc(adv.copyForAi)}</button>
+      </div>`;
+  }
+
+  function renderAdvisorData(data) {
+    if (!advisorResultsEl) return;
+    const dict = DICT[locale];
+    const adv = dict.advisor;
+    advisorLastPicks = (data.picks || []).map((p) => p.id);
+    advisorLastApiUrl = data.meta?.queryUrl || "https://browserly.maoxunxing.com/api/recommend";
+
+    const metaLine = formatTemplate(adv.matchedMeta, {
+      matched: data.matchedCount,
+      excluded: data.excludedCount
+    });
+
+    const compareBtn =
+      advisorLastPicks.length >= 2
+        ? `<button type="button" class="btn btn-lime btn-sm" id="advisor-compare-btn">${esc(adv.comparePicks)} (${advisorLastPicks.length})</button>`
+        : "";
+
+    let mainHtml = "";
+    if (!data.picks || data.picks.length === 0) {
+      const relaxBtns = (data.relaxedSuggestions || [])
+        .map(
+          (s) =>
+            `<button type="button" class="btn btn-primary btn-sm" data-relax-axis="${esc(s.relaxAxis)}">${esc(formatTemplate(adv.relaxAxis, { axis: adv.axes[s.relaxAxis]?.replace(/^\d+\.\s*/, "") || s.relaxAxis, count: s.unlockedCount }))}</button>`
+        )
+        .join("");
+      mainHtml = `<div class="empty-box" style="margin-top:0;">
+        <h3>${esc(adv.emptyTitle)}</h3>
+        <p>${esc(adv.emptyHint)}</p>
+        <div style="margin-top:0.85rem;display:flex;flex-wrap:wrap;justify-content:center;gap:0.5rem;">${relaxBtns}</div>
+      </div>`;
+    } else {
+      mainHtml = data.picks
+        .map((p) => {
+          const sp = p.specs;
+          const badges = [
+            badgeHtml(perceptionLabel(locale, sp.perception), badgeTone("perception", sp.perception)),
+            badgeHtml(hostingLabel(locale, sp.hosting), badgeTone("hosting", sp.hosting)),
+            badgeHtml(`MCP: ${mcpLabel(locale, sp.mcp)}`, badgeTone("mcp", sp.mcp)),
+            badgeHtml(authLabel(locale, sp.credentials), badgeTone("auth", sp.credentials)),
+            badgeHtml(sp.antiBot, badgeTone("antiBot", sp.antiBot)),
+            badgeHtml(sp.pricing, isUncertain("pricing", sp.pricing) ? "unknown" : "lime"),
+            badgeHtml(licenseLabel(locale, sp.license), badgeTone("license", sp.license))
+          ].join("");
+          const reasons = (p.matchedReasons || []).map((r) => `<li><span>${esc(r)}</span></li>`).join("");
+          const caveats =
+            p.caveats && p.caveats.length > 0
+              ? `<div class="advisor-caveats"><strong>${esc(adv.caveats)}:</strong>${p.caveats.map((c) => `<span>• ${esc(c)}</span>`).join("")}</div>`
+              : "";
+          return `<article class="advisor-pick${p.rank === 1 ? " is-primary" : ""}">
+            <div class="advisor-pick-head">
+              <div class="card-logo-box" style="width:36px;height:36px;"><img src="${esc(p.logo)}" alt="" width="24" height="24"></div>
+              <div style="min-width:0;">
+                <div style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;">
+                  <span class="advisor-tier">#${p.rank} · ${esc(adv.tiers[p.tier] || p.tier)}</span>
+                  <a href="${esc(p.urls.detail)}" style="font-weight:700;font-size:1rem;letter-spacing:-0.02em;">${esc(p.name)}</a>
+                </div>
+                <div style="font-size:0.78rem;color:var(--ink-muted);">${esc(p.vendor)} · ${esc(p.lastChecked)}</div>
+              </div>
+              <span class="advisor-score tabular-nums">${esc(adv.scoreLabel)} ${p.score}%</span>
+            </div>
+            <div class="advisor-badges">${badges}</div>
+            <ul class="advisor-reasons">${reasons}</ul>
+            ${caveats}
+            <div class="advisor-pick-foot">
+              <a href="${esc(p.urls.detail)}" class="btn btn-primary btn-sm">${esc(adv.openDossier)} ${SVG_ICONS.arrowRight}</a>
+              <a href="${esc(p.urls.docs)}" target="_blank" rel="noreferrer" class="btn btn-ghost btn-sm">${esc(adv.docs)} ${SVG_ICONS.external}</a>
+            </div>
+          </article>`;
+        })
+        .join("");
+    }
+
+    const adviceHtml =
+      data.stackAdvice && data.stackAdvice.length > 0
+        ? `<div class="advisor-box"><h4>${esc(adv.adviceTitle)}</h4><ul class="advisor-excl-list">${data.stackAdvice.map((a) => `<li>• ${esc(a)}</li>`).join("")}</ul></div>`
+        : "";
+
+    const exclHtml =
+      data.excluded && data.excluded.length > 0
+        ? `<div class="advisor-box"><h4>${esc(adv.excludedTitle)} (${data.excludedCount})</h4><ul class="advisor-excl-list">${data.excluded.slice(0, 5).map((e) => `<li><strong>${esc(e.name)}</strong> — ${esc(e.reason)}</li>`).join("")}</ul></div>`
+        : "";
+
+    const apiUrl = data.meta?.queryUrl || "";
+    const apiBar = apiUrl
+      ? `<div class="advisor-api-bar"><code>${esc(apiUrl)}</code><button type="button" class="api-copy-btn" data-copy="${esc(apiUrl)}" data-copy-default="advisor.copyApi" data-copy-done="advisor.copied"><span>${esc(adv.copyApi)}</span></button></div>`
+      : "";
+
+    advisorResultsEl.innerHTML = `<div class="advisor-res-bar">
+        <span class="advisor-res-meta tabular-nums">${esc(metaLine)}</span>
+        <div class="advisor-res-actions">${compareBtn}</div>
+      </div>
+      ${mainHtml}
+      ${adviceHtml}
+      ${exclHtml}
+      ${apiBar}`;
+  }
+
+  async function fetchAdvisorResults() {
+    if (!advisorResultsEl) return;
+    const seq = ++advisorReqSeq;
+    const sp = new URLSearchParams();
+    for (const [axis] of ADVISOR_AXES) {
+      if (advisorState[axis] && advisorState[axis] !== "any") sp.set(axis, advisorState[axis]);
+    }
+    sp.set("locale", locale);
+    if (!advisorResultsEl.innerHTML.trim()) {
+      advisorResultsEl.innerHTML = `<p style="font-size:0.88rem;color:var(--ink-muted);padding:1rem 0;">${esc(DICT[locale].advisor.loading)}</p>`;
+    }
+    try {
+      const res = await fetch(`/api/recommend?${sp.toString()}`);
+      if (!res.ok) throw new Error(String(res.status));
+      const data = await res.json();
+      if (seq !== advisorReqSeq) return;
+      renderAdvisorData(data);
+    } catch {
+      if (seq !== advisorReqSeq) return;
+      advisorResultsEl.innerHTML = `<p style="font-size:0.88rem;color:var(--sem-warn-fg);padding:1rem 0;">${esc(DICT[locale].advisor.error)}</p>`;
+    }
+  }
+
+  function openAdvisorModal(triggerEl = null) {
+    if (!advisorBackdrop) return;
+    state.lastFocusEl = triggerEl || document.activeElement;
+    renderAdvisorControls();
+    advisorBackdrop.classList.add("is-open");
+    advisorBackdrop.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    advisorCloseBtn?.focus();
+    fetchAdvisorResults();
+  }
+
+  function closeAdvisorModal() {
+    if (!advisorBackdrop) return;
+    advisorBackdrop.classList.remove("is-open");
+    advisorBackdrop.setAttribute("aria-hidden", "true");
+    if (!isCompareModalOpen() && !state.demoAgentId) document.body.style.overflow = "";
+    if (state.lastFocusEl instanceof HTMLElement) state.lastFocusEl.focus();
+  }
+
+  document.querySelectorAll("[data-open-advisor]").forEach((btn) => {
+    btn.addEventListener("click", () => openAdvisorModal(btn));
+  });
+  advisorCloseBtn?.addEventListener("click", closeAdvisorModal);
+  advisorBackdrop?.addEventListener("click", (ev) => {
+    if (ev.target === advisorBackdrop) closeAdvisorModal();
+  });
+
+  advisorControlsEl?.addEventListener("click", async (ev) => {
+    const copyAiBtn = ev.target.closest("#advisor-copy-prompt-btn");
+    if (copyAiBtn) {
+      await copyText(buildAdvisorAiPrompt());
+      showToast(DICT[locale].advisor.copiedForAi);
+      return;
+    }
+    const resetBtn = ev.target.closest("#advisor-reset-btn");
+    if (resetBtn) {
+      Object.assign(advisorState, { useCase: "any", auth: "any", hosting: "any", mcp: "any", antiBot: "any", budget: "any" });
+      renderAdvisorControls();
+      fetchAdvisorResults();
+      return;
+    }
+    const pill = ev.target.closest("[data-adv-axis]");
+    if (!pill) return;
+    const axis = pill.dataset.advAxis;
+    const val = pill.dataset.advVal;
+    advisorState[axis] = val;
+    if (axis === "useCase" && ADVISOR_PRESETS[val]) {
+      Object.assign(advisorState, ADVISOR_PRESETS[val]);
+    }
+    renderAdvisorControls();
+    fetchAdvisorResults();
+  });
+
+  advisorResultsEl?.addEventListener("click", (ev) => {
+    const cmpBtn = ev.target.closest("#advisor-compare-btn");
+    if (cmpBtn && advisorLastPicks.length > 0) {
+      state.compareIds = advisorLastPicks.filter((id) => agentMap.has(id)).slice(0, 4);
+      closeAdvisorModal();
+      syncCompareButtons();
+      renderCompareDock();
+      openCompareModal(cmpBtn);
+      return;
+    }
+    const relaxBtn = ev.target.closest("[data-relax-axis]");
+    if (relaxBtn) {
+      const axis = relaxBtn.dataset.relaxAxis;
+      if (axis in advisorState) {
+        advisorState[axis] = "any";
+        renderAdvisorControls();
+        fetchAdvisorResults();
+      }
+    }
+  });
+
   /* ---------- Initial Sync ---------- */
   const stored = readStoredLocale();
   if (stored && stored !== locale) {
@@ -1284,5 +1609,8 @@ function renderEvidencePanel(agent, showTitle = true) {
     renderCatalog();
   } else {
     updateSidebarCounts();
+  }
+  if (new URLSearchParams(window.location.search).get("advisor") === "1") {
+    openAdvisorModal();
   }
 })();

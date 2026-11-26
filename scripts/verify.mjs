@@ -106,11 +106,79 @@ for (const item of apiJson) {
   ok(item.logo in manifest, `Logo ${item.logo} missing from manifest`);
 }
 
-// 3. /llms.txt and /icon.svg
+// 3. /llms.txt, /api/recommend, /SKILL.md, /SKILL.zh-CN.md, and /icon.svg
 const llmsRes = await req("/llms.txt");
 ok(llmsRes.status === 200, "/llms.txt status 200");
 const llmsText = await llmsRes.text();
-ok(llmsText.includes("# Browserly") && llmsText.includes("/api/agents"), "/llms.txt content");
+ok(
+  llmsText.includes("# Browserly") &&
+    llmsText.includes("/api/agents") &&
+    llmsText.includes("/api/recommend") &&
+    llmsText.includes("/SKILL.md"),
+  "/llms.txt exposes catalog, recommend API, and SKILL.md"
+);
+
+// 3b. /api/recommend deterministic scenarios, hard exclusions, caveats, and relaxation
+const recCodingRes = await req(
+  "/api/recommend?useCase=coding-agent&auth=local-session&hosting=self-host&mcp=required&antiBot=none&budget=free-oss&locale=en"
+);
+ok(recCodingRes.status === 200, "/api/recommend coding-agent status 200");
+ok(recCodingRes.headers.get("access-control-allow-origin") === "*", "/api/recommend CORS header");
+const recCoding = await recCodingRes.json();
+ok(recCoding.totalCatalogCount === 17, "/api/recommend reports 17 total agents");
+ok(recCoding.picks.length === 3, "/api/recommend returns default 3 picks");
+ok(recCoding.picks[0].id === "playwright-mcp", `Expected playwright-mcp #1 for coding-agent, got ${recCoding.picks[0]?.id}`);
+ok(recCoding.picks.every((p) => p.specs.hosting !== "cloud" && p.specs.mcp !== "no"), "Hard hosting/mcp constraints respected");
+ok(recCoding.excluded.some((e) => e.reasonCode === "cloud_only" || e.reasonCode === "no_local_session"), "Exclusions include hard reason codes");
+ok(recCoding.stackAdvice.length >= 1, "Stack advice present");
+
+const recCloudRes = await req(
+  "/api/recommend?useCase=headless-pipeline&auth=cloud-vault&hosting=cloud&mcp=preferred&antiBot=stealth-captcha&budget=paid-ok&locale=zh"
+);
+ok(recCloudRes.status === 200, "/api/recommend cloud pipeline zh status 200");
+const recCloud = await recCloudRes.json();
+ok(recCloud.locale === "zh", "/api/recommend zh locale respected");
+ok(["notte", "skyvern"].includes(recCloud.picks[0]?.id), `Expected notte/skyvern #1 for cloud vault + captcha, got ${recCloud.picks[0]?.id}`);
+ok(recCloud.picks[0].caveats.length >= 1, "Copyleft / anti-bot caveats surfaced honestly");
+
+const recStagehandRes = await req(
+  "/api/recommend?useCase=headless-pipeline&auth=isolated-profile&mcp=sdk-cli&budget=free-oss&locale=en"
+);
+const recStagehand = await recStagehandRes.json();
+ok(recStagehand.picks[0]?.id === "stagehand", `Expected stagehand #1 for isolated SDK/CLI pipeline, got ${recStagehand.picks[0]?.id}`);
+ok(recStagehand.stackAdvice.some((s) => s.includes("Browserbase")), "Stagehand pick surfaces Browserbase infra note");
+
+const recEmptyRes = await req("/api/recommend?hosting=cloud&auth=local-session&perception=dom&locale=zh");
+const recEmpty = await recEmptyRes.json();
+ok(recEmpty.matchedCount === 0 && recEmpty.picks.length === 0, "Impossible combination returns 0 picks cleanly");
+ok(recEmpty.relaxedSuggestions.length >= 1, "Impossible combination returns actionable relaxedSuggestions");
+
+// 3c. /SKILL.md, /SKILL.zh-CN.md, alias routes, and repo-native skills/momo-browserly-advisor/ sync
+const skillEnRes = await req("/SKILL.md");
+ok(skillEnRes.status === 200, "/SKILL.md status 200");
+ok(skillEnRes.headers.get("content-type")?.includes("text/markdown"), "/SKILL.md markdown content-type");
+const skillEnText = await skillEnRes.text();
+ok(skillEnText.startsWith("---\nname: momo-browserly-advisor\n"), "/SKILL.md has valid YAML frontmatter with newlines preserved");
+ok(skillEnText.includes("/api/recommend") && skillEnText.includes("e2e-testing"), "/SKILL.md includes API and e2e-testing boundary");
+for (const a of apiJson) {
+  ok(skillEnText.includes(`\`${a.id}\``), `/SKILL.md offline snapshot missing agent ${a.id}`);
+}
+
+const skillZhRes = await req("/SKILL.zh-CN.md");
+ok(skillZhRes.status === 200, "/SKILL.zh-CN.md status 200");
+const skillZhText = await skillZhRes.text();
+ok(skillZhText.startsWith("---\nname: momo-browserly-advisor\n") && skillZhText.includes("离线兜底"), "/SKILL.zh-CN.md valid zh markdown");
+
+const skillAliasEn = await req("/skills/momo-browserly-advisor/SKILL.md");
+const skillAliasZh = await req("/skills/momo-browserly-advisor/SKILL.zh-CN.md");
+ok(skillAliasEn.status === 200 && skillAliasZh.status === 200, "Alias /skills/momo-browserly-advisor/* routes return 200");
+
+const diskSkillEn = fs.readFileSync(path.join(ROOT, "skills", "momo-browserly-advisor", "SKILL.md"), "utf8");
+const diskSkillZh = fs.readFileSync(path.join(ROOT, "skills", "momo-browserly-advisor", "SKILL.zh-CN.md"), "utf8");
+const diskEval = JSON.parse(fs.readFileSync(path.join(ROOT, "skills", "momo-browserly-advisor", "eval-cases.json"), "utf8"));
+ok(diskSkillEn === skillEnText, "Repo skills/momo-browserly-advisor/SKILL.md matches Worker /SKILL.md byte-for-byte");
+ok(diskSkillZh === skillZhText, "Repo skills/momo-browserly-advisor/SKILL.zh-CN.md matches Worker /SKILL.zh-CN.md byte-for-byte");
+ok(Array.isArray(diskEval.cases) && diskEval.cases.length >= 6, "eval-cases.json contains golden trigger cases");
 
 const iconRes = await req("/icon.svg");
 ok(iconRes.status === 200 && iconRes.headers.get("content-type")?.includes("image/svg+xml"), "/icon.svg status & type");
@@ -140,8 +208,8 @@ ok(spOk.status === 200, "/api/sponsor returns 200 on valid payload");
 const spOkBody = await spOk.json();
 ok(spOkBody.ok === true && spOkBody.stored === "noop", "/api/sponsor payload matches");
 
-// 5. All 20 HTML routes in EN and ZH
-const htmlRoutes = ["/", "/about", "/sponsor", ...apiJson.map((a) => `/agent/${a.id}`)];
+// 5. All 21 HTML routes in EN and ZH
+const htmlRoutes = ["/", "/skill", "/about", "/sponsor", ...apiJson.map((a) => `/agent/${a.id}`)];
 const localAssetRefs = new Set();
 
 for (const route of htmlRoutes) {
@@ -159,8 +227,26 @@ for (const route of htmlRoutes) {
         html.includes(loc === "zh" ? "驱动浏览器的智能体" : "Browser-driving agents"),
         `Home [${loc}] missing restored hero title`
       );
+      ok(
+        html.includes('id="hero-quickcopy"') &&
+          html.includes('id="hero-qc-copy"') &&
+          html.includes('href="/skill"') &&
+          html.includes('id="open-advisor-btn"') &&
+          html.includes('id="advisor-modal-backdrop"') &&
+          html.includes("npx skills add XingMXTeam/browsely"),
+        `Home [${loc}] missing Hero quick-copy bar, /skill nav, Solution Finder, and Skill showcase`
+      );
     }
-    if (route === "/" || route === "/about" || route === "/sponsor") {
+    if (route === "/skill") {
+      ok(
+        html.includes('id="skill-page-prompt"') &&
+          html.includes("npx skills add XingMXTeam/browsely") &&
+          html.includes("/SKILL.md") &&
+          html.includes("/api/recommend"),
+        `/skill [${loc}] missing quick-copy prompt, CLI command, or raw doc links`
+      );
+    }
+    if (route === "/" || route === "/skill" || route === "/about" || route === "/sponsor") {
       ok(
         html.includes("maoxunxing") && html.includes("毛毛星") && html.includes("/wechat-qr.jpg"),
         `${route} [${loc}] missing WeChat contact block`
@@ -207,13 +293,13 @@ const homeBuf = Buffer.from(homeHtml, "utf8");
 const homeBytes = homeBuf.length;
 const homeGz = gzipSync(homeBuf, { level: 9 }).length;
 
-ok(workerSize < 160 * 1024, `pkg/worker.js size ${workerSize} exceeds 160 KB budget`);
-ok(cssSize < 46 * 1024, `CSS size ${cssSize} exceeds 46 KB budget`);
-ok(cssGz < 10 * 1024, `CSS gzip ${cssGz} exceeds 10 KB budget`);
-ok(jsSize < 55 * 1024, `Client JS size ${jsSize} exceeds 55 KB budget`);
-ok(jsGz < 18 * 1024, `Client JS gzip ${jsGz} exceeds 18 KB budget`);
-ok(homeBytes < 135 * 1024, `Homepage HTML size ${homeBytes} exceeds 135 KB budget`);
-ok(homeGz < 28 * 1024, `Homepage HTML gzip ${homeGz} exceeds 28 KB budget`);
+ok(workerSize < 190 * 1024, `pkg/worker.js size ${workerSize} exceeds 190 KB budget`);
+ok(cssSize < 54 * 1024, `CSS size ${cssSize} exceeds 54 KB budget`);
+ok(cssGz < 10.5 * 1024, `CSS gzip ${cssGz} exceeds 10.5 KB budget`);
+ok(jsSize < 72 * 1024, `Client JS size ${jsSize} exceeds 72 KB budget`);
+ok(jsGz < 21 * 1024, `Client JS gzip ${jsGz} exceeds 21 KB budget`);
+ok(homeBytes < 148 * 1024, `Homepage HTML size ${homeBytes} exceeds 148 KB budget`);
+ok(homeGz < 25 * 1024, `Homepage HTML gzip ${homeGz} exceeds 25 KB budget`);
 
 console.log(`ALL ${checks} CHECKS PASSED!`);
 console.log(`  pkg/worker.js: ${(workerSize / 1024).toFixed(1)} KB (was 8056 KB)`);

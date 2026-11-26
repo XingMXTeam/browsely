@@ -1,6 +1,16 @@
 # Browsely (Browserly)
 
-[browserly.maoxunxing.com](https://browserly.maoxunxing.com/)：17 个浏览器驱动型 AI 智能体（Browser Use、Stagehand、Skyvern、Playwright MCP 等）的双语核对矩阵与深度档案看板，含详情页 `/agent/<id>`、方法论与更新记录页 `/about`、赞助页 `/sponsor`，以及面向程序与 Agent 的 `/api/agents` 与 `/llms.txt`。
+[browserly.maoxunxing.com](https://browserly.maoxunxing.com/)：17 个浏览器驱动型 AI 智能体（Browser Use、Stagehand、Skyvern、Playwright MCP 等）的双语核对矩阵、**30 秒智能选型顾问**与深度档案看板，含详情页 `/agent/<id>`、方法论与更新记录页 `/about`、赞助页 `/sponsor`，以及面向程序与 Coding Agent 的 `/api/recommend`、`/api/agents`、`/llms.txt` 与可一键安装的 **`momo-browserly-advisor` Agent Skill**（`/SKILL.md` & `/SKILL.zh-CN.md`）。
+
+## 一键安装 Agent Skill（Claude Code / Antigravity / Codex / Cursor）
+
+```bash
+npx skills add XingMXTeam/browsely
+```
+
+或直接指向在线 Skill / 确定性选型接口：
+- Skill（English / 简体中文）：`https://browserly.maoxunxing.com/SKILL.md` · `https://browserly.maoxunxing.com/SKILL.zh-CN.md`
+- 确定性选型 API：`GET https://browserly.maoxunxing.com/api/recommend?useCase=coding-agent&auth=local-session&hosting=self-host&mcp=required&budget=free-oss`
 
 > 仓库名按 GitHub 既定名称拼作 `browsely`，产品名与域名为 **Browserly**（原名 BrowseBoard）。详细架构与维护指南见 [AGENTS.md](./AGENTS.md)。
 

@@ -11,6 +11,7 @@ export const DICT = {
     },
     nav: {
       matrix: "Matrix",
+      skill: "Skill",
       method: "Method",
       sponsor: "Sponsor"
     },
@@ -46,9 +47,22 @@ export const DICT = {
       checkedSort: "Last checked",
       details: "Full dossier",
       shortDetails: "Details",
-      browse: "Browse agents",
+      browse: "Browse matrix",
+      findAgent: "30s Web Finder",
       compareTop: "Compare top 4",
       submit: "Submit a browser agent",
+      quickCopy: {
+        modePrompt: "Send to any AI",
+        modeCli: "Install Skill (CLI)",
+        hintPrompt: "Paste into Claude, ChatGPT, Antigravity, Cursor, or Codex — interactive Q&A selection in 30s.",
+        hintCli: "Install momo-browserly-advisor skill into Antigravity, Claude Code, Codex, or Cursor.",
+        promptText:
+          "Help me pick the right browser-driving AI agent: read https://browserly.maoxunxing.com/SKILL.md (rules + 17 first-party verified tools), ask me 2-3 quick interactive questions about my login session, hosting, MCP, license, and anti-bot needs, then query https://browserly.maoxunxing.com/api/recommend and give me a Primary Pick, Runner-up, Why-Not exclusions, and honest caveats.",
+        cliText: "npx skills add XingMXTeam/browsely",
+        copyBtn: "Copy",
+        copiedBtn: "Copied!",
+        copiedToast: "Copied! Paste it into your AI assistant to start."
+      },
       showing: "{shown} of {total} agents",
       stats: {
         agents: "Verified agents",
@@ -109,15 +123,97 @@ export const DICT = {
       noVideo: "No official demo video published — showing verified visual reference."
     },
     apiBand: {
-      badge: "Machine-Readable Catalog",
-      title: "Built for humans. Structured for AI coding agents.",
-      desc: "Fetch the exact verified dataset as clean JSON or point your coding assistant directly at /llms.txt.",
+      badge: "Agent Skill & Recommendation API",
+      title: "Built for humans. Installable by AI coding agents.",
+      desc: "Copy a 1-line prompt to any AI assistant, install momo-browserly-advisor via CLI, or call /api/recommend directly.",
       jsonLabel: "JSON Catalog",
       llmsLabel: "LLM Index",
+      openSkill: "Skill Guide",
+      openFinder: "30s Web Finder",
       openJson: "Open /api/agents",
       openLlms: "Open /llms.txt",
-      copy: "Copy URL",
+      tabSkill: "Agent Skill",
+      tabRecommend: "Recommend API",
+      tabCatalog: "JSON & llms.txt",
+      copy: "Copy",
       copied: "Copied"
+    },
+    advisor: {
+      badge: "Browserly Advisor",
+      title: "Find your browser agent in 30 seconds",
+      subtitle: "Pick your engineering constraints — scored deterministically against first-party verified docs, with honest caveats and why-not exclusions.",
+      close: "Close finder",
+      reset: "Reset",
+      comparePicks: "Compare top picks",
+      copyForAi: "Copy for AI Agent",
+      copiedForAi: "Copied! Paste into your AI assistant to continue setup.",
+      copyApi: "Copy API URL",
+      copied: "Copied",
+      loading: "Scoring 17 verified agents…",
+      error: "Could not reach /api/recommend. Try again.",
+      matchedMeta: "{matched} matched · {excluded} ruled out",
+      scoreLabel: "Match",
+      whyMatched: "Why it fits",
+      caveats: "Honest caveats",
+      excludedTitle: "Why other agents were ruled out",
+      adviceTitle: "Architecture & rollout notes",
+      openDossier: "Full dossier",
+      docs: "Docs",
+      emptyTitle: "No single agent satisfies every hard constraint",
+      emptyHint: "Relax one constraint below to unlock verified candidates:",
+      relaxAxis: "Relax {axis} ({count})",
+      tiers: {
+        primary: "Primary Pick",
+        "runner-up": "Runner-up",
+        alternative: "Alternative"
+      },
+      axes: {
+        useCase: "1. Primary Scenario",
+        auth: "2. Credential & Session Boundary",
+        hosting: "3. Hosting & Compliance",
+        mcp: "4. MCP / Integration",
+        antiBot: "5. Anti-bot & Login Wall",
+        budget: "6. Budget & License"
+      },
+      opts: {
+        useCase: {
+          "coding-agent": "Coding Agent / MCP",
+          "logged-in-ops": "Logged-in Ops",
+          "headless-pipeline": "Headless Pipeline",
+          "visual-canvas": "Visual / Canvas UI",
+          "hard-antibot": "Hard Anti-bot",
+          any: "Any"
+        },
+        auth: {
+          any: "Any",
+          "local-session": "Local Session",
+          "isolated-profile": "Isolated Profile",
+          "cloud-vault": "Cloud Vault"
+        },
+        hosting: {
+          any: "Any",
+          "self-host": "Self-host Only",
+          cloud: "Managed Cloud"
+        },
+        mcp: {
+          any: "Any",
+          required: "MCP Required",
+          preferred: "MCP Preferred",
+          "sdk-cli": "SDK / CLI"
+        },
+        antiBot: {
+          any: "Any",
+          none: "Own App / None",
+          "login-reuse": "Real Login Reuse",
+          "stealth-captcha": "Stealth / CAPTCHA"
+        },
+        budget: {
+          any: "Any",
+          "free-oss": "Free MIT / Apache",
+          "oss-any": "Any OSS",
+          "paid-ok": "Paid SaaS OK"
+        }
+      }
     },
     contact: {
       wechatId: "WeChat: maoxunxing",
@@ -211,6 +307,30 @@ export const DICT = {
       contactTitle: "Get in touch",
       contactBody: "To suggest a correction, submit a browser-driving agent, or reach the maintainer directly:"
     },
+    skillPage: {
+      title: "Agent Skill & API Docs",
+      description: "Let any AI assistant interactively select the right browser-driving agent using Browserly's verified catalog and /api/recommend engine.",
+      badge: "momo-browserly-advisor",
+      lead: "Copy one prompt to any AI assistant — or install the skill into your coding agent. It inspects your workspace, asks 2–3 sharp questions, and recommends the right stack with verified caveats and why-not exclusions.",
+      tryFinder: "Open 30s Web Finder",
+      waysTitle: "Two ways to start in 10 seconds",
+      way1Badge: "Recommended · Zero Setup",
+      way1Title: "Copy & paste to any AI assistant",
+      way1Desc: "Works with ChatGPT, Claude, Antigravity, Cursor, Codex, DeepSeek, or any assistant that can read URLs.",
+      way2Badge: "Persistent Install",
+      way2Title: "Install into your Coding Agent",
+      way2Desc: "Adds skills/momo-browserly-advisor directly so your coding agent auto-triggers it whenever you pick a browser stack.",
+      demoTitle: "What actually happens after you paste it",
+      demoDesc: "Instead of dumping a static table, your AI walks you through a fast interactive decision loop:",
+      demoSteps: [
+        { role: "You", text: "Paste the 1-line Browserly prompt into your AI assistant." },
+        { role: "Your AI", text: "Checks package.json / .mcp.json, then asks: Do you need to reuse your local logged-in Chrome? Strict self-host & MIT/Apache-2.0? Facing Cloudflare/CAPTCHA?" },
+        { role: "Your AI → Browserly API", text: "Calls /api/recommend with your exact constraints → returns #1 Playwright MCP (99%), #2 huashu-chrome (97%), rules out Skyvern (AGPL-3.0) & cloud-only tools, and flags honest caveats." }
+      ],
+      rawTitle: "Raw Skill & Machine-Readable Endpoints",
+      rawDesc: "All underlying markdown playbooks and JSON endpoints stay live, CORS-enabled, and auto-synced with every verification pass.",
+      openRaw: "Open"
+    },
     notFound: {
       code: "404",
       title: "Page not found",
@@ -225,6 +345,7 @@ export const DICT = {
     },
     nav: {
       matrix: "矩阵",
+      skill: "Skill",
       method: "方法",
       sponsor: "赞助"
     },
@@ -259,9 +380,22 @@ export const DICT = {
       checkedSort: "最近核对",
       details: "查看详情页",
       shortDetails: "详情",
-      browse: "浏览智能体",
+      browse: "浏览全部矩阵",
+      findAgent: "30 秒网页选型",
       compareTop: "对比前 4 项",
       submit: "提交浏览器智能体",
+      quickCopy: {
+        modePrompt: "发给任意 AI 选型",
+        modeCli: "安装 Skill (CLI)",
+        hintPrompt: "复制粘贴给你的通用智能体（Claude / ChatGPT / Antigravity / Cursor / DeepSeek 等），30 秒对话完成选型。",
+        hintCli: "一键将 momo-browserly-advisor 安装进 Antigravity / Claude Code / Codex / Cursor。",
+        promptText:
+          "请帮我选一个最合适的浏览器 AI 智能体：先阅读 https://browserly.maoxunxing.com/SKILL.zh-CN.md 里的选型规则与 17 个一手核验方案，再用 2-3 个简短交互问题确认我的需求（是否复用本机登录态、是否必须私有化/宽松开源、是否需要 MCP 和反爬），最后调用 https://browserly.maoxunxing.com/api/recommend 给出首选、备选、排除理由与避坑提醒。",
+        cliText: "npx skills add XingMXTeam/browsely",
+        copyBtn: "一键复制",
+        copiedBtn: "已复制",
+        copiedToast: "已复制！直接粘贴发给你的 AI 助手即可开始选型。"
+      },
       showing: "当前显示 {shown} / {total} 个工具",
       stats: {
         agents: "已核对工具",
@@ -322,15 +456,97 @@ export const DICT = {
       noVideo: "官方暂未提供演示视频，当前展示已核对的架构或图标。"
     },
     apiBand: {
-      badge: "面向人与 Agent 的结构化目录",
-      title: "既服务研究者，也原生适配编程智能体。",
-      desc: "直接拉取干净的 JSON 目录，或将 /llms.txt 接入你的编程助手上下文。",
+      badge: "Agent Skill 与智能选型接口",
+      title: "人可直接选型，AI 编程助手可一键装成 Skill。",
+      desc: "复制一条提示词发给任意 AI 助手、通过 CLI 一键安装 momo-browserly-advisor，或直接调用 /api/recommend 与 /llms.txt。",
       jsonLabel: "JSON 目录",
       llmsLabel: "LLM 索引",
+      openSkill: "查看 Skill 指南",
+      openFinder: "30 秒网页选型",
       openJson: "打开 /api/agents",
       openLlms: "打开 /llms.txt",
-      copy: "复制链接",
+      tabSkill: "安装 Skill",
+      tabRecommend: "选型 API",
+      tabCatalog: "JSON 与 llms.txt",
+      copy: "复制",
       copied: "已复制"
+    },
+    advisor: {
+      badge: "Browserly 选型顾问",
+      title: "30 秒找到最匹配的浏览器智能体",
+      subtitle: "按真实工程约束勾选条件，基于官方一手核验数据实时打分，并明确展示排除依据与避坑提示。",
+      close: "关闭选型顾问",
+      reset: "重置条件",
+      comparePicks: "并排对比推荐方案",
+      copyForAi: "复制给 AI 继续落地",
+      copiedForAi: "已复制！直接粘贴发给你的 AI 助手即可按此条件配置。",
+      copyApi: "复制 API 链接",
+      copied: "已复制",
+      loading: "正在匹配 17 个已核验方案…",
+      error: "请求 /api/recommend 失败，请重试。",
+      matchedMeta: "匹配 {matched} 项 · 排除 {excluded} 项",
+      scoreLabel: "匹配度",
+      whyMatched: "推荐依据",
+      caveats: "风险与存疑提醒",
+      excludedTitle: "为什么排除了其他热门方案",
+      adviceTitle: "架构与落地建议",
+      openDossier: "查看完整档案",
+      docs: "官方文档",
+      emptyTitle: "没有单一方案同时满足全部硬约束",
+      emptyHint: "点击下方任一按钮放宽单个约束，立即解锁候选方案：",
+      relaxAxis: "放宽「{axis}」({count} 项)",
+      tiers: {
+        primary: "首选方案",
+        "runner-up": "备选方案",
+        alternative: "差异化候选"
+      },
+      axes: {
+        useCase: "1. 核心场景",
+        auth: "2. 登录与凭证边界",
+        hosting: "3. 部署与合规",
+        mcp: "4. MCP / 接入形态",
+        antiBot: "5. 风控与登录墙",
+        budget: "6. 预算与开源协议"
+      },
+      opts: {
+        useCase: {
+          "coding-agent": "编程 Agent / MCP",
+          "logged-in-ops": "复用本机登录态",
+          "headless-pipeline": "无人值守批处理",
+          "visual-canvas": "复杂视觉 / Canvas",
+          "hard-antibot": "强风控 / 验证码",
+          any: "不限"
+        },
+        auth: {
+          any: "不限",
+          "local-session": "本机已登录会话",
+          "isolated-profile": "独立 Profile / 运行时",
+          "cloud-vault": "云端密钥库"
+        },
+        hosting: {
+          any: "不限",
+          "self-host": "仅本机 / 私有化",
+          cloud: "官方云托管"
+        },
+        mcp: {
+          any: "不限",
+          required: "必须原生 MCP",
+          preferred: "有 MCP 加分",
+          "sdk-cli": "代码 SDK / CLI"
+        },
+        antiBot: {
+          any: "不限",
+          none: "自家站点 / 无风控",
+          "login-reuse": "本机真实登录绕过",
+          "stealth-captcha": "隐身指纹 / 验证码"
+        },
+        budget: {
+          any: "不限",
+          "free-oss": "免费 MIT / Apache",
+          "oss-any": "开源即可（含 AGPL）",
+          "paid-ok": "接受按量 / 订阅"
+        }
+      }
     },
     contact: {
       wechatId: "微信号：maoxunxing",
@@ -421,6 +637,30 @@ export const DICT = {
       promiseBody: "Browserly 坚持所有数据来自公开一手文档并标注核对日期。任何商业合作均不会影响收录标准、徽章判定或结论陈述。",
       contactTitle: "联系维护者",
       contactBody: "欢迎纠错、提交新的浏览器驱动型智能体或交流产品动态："
+    },
+    skillPage: {
+      title: "Agent Skill 与选型文档",
+      description: "复制一条指令发给任意 AI 助手，或安装 momo-browserly-advisor Skill，通过 2~3 轮对话基于 Browserly 一手数据完成浏览器智能体选型。",
+      badge: "momo-browserly-advisor",
+      lead: "不想自己翻对照表？复制下面任意一条发给你的 AI 助手——它会先看你的项目环境、追问 2~3 个硬约束，再调用 Browserly 实时引擎给出首选、备选、排除原因与避坑提醒。",
+      tryFinder: "打开 30 秒网页选型",
+      waysTitle: "两种方式，10 秒用起来",
+      way1Badge: "推荐 · 零安装",
+      way1Title: "直接复制，发给任意通用 AI 助手",
+      way1Desc: "适用于 Claude、ChatGPT、Antigravity、Cursor、Codex、DeepSeek 等所有支持联网或读文档的助手。",
+      way2Badge: "持久集成",
+      way2Title: "一行命令安装成编程助手 Skill",
+      way2Desc: "自动安装 skills/momo-browserly-advisor，后续只要在项目里讨论浏览器自动化或 MCP 选型就会自动触发。",
+      demoTitle: "粘贴给 AI 之后会发生什么？",
+      demoDesc: "它不是给你甩一张静态表，而是走完一轮真正的交互式架构诊断：",
+      demoSteps: [
+        { role: "你", text: "粘贴刚才复制的一行 Browserly 选型指令给 AI 助手。" },
+        { role: "你的 AI", text: "自动读取项目 package.json / .mcp.json，再简短追问：需要复用本机已登录的 Chrome 吗？必须私有化且 MIT/Apache-2.0 吗？目标站有 Cloudflare 或验证码吗？" },
+        { role: "AI → Browserly 接口", text: "按你的回答实时调用 /api/recommend → 返回 #1 Playwright MCP (99%)、#2 huashu-chrome (97%)，明确排除 AGPL 协议与纯云端方案，并附核对日期与避坑清单。" }
+      ],
+      rawTitle: "原始 Skill 文档与机器可读端点",
+      rawDesc: "所有底层 Markdown 规范与 JSON 接口长期在线、支持 CORS，并随每次数据核对自动同步。",
+      openRaw: "打开"
     },
     notFound: {
       code: "404",

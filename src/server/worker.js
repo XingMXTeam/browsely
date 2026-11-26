@@ -4,14 +4,17 @@ import {
   getRelatedAgents,
   toApiAgentsJson
 } from "../data/catalog.js";
+import { recommendAgents } from "../data/recommender.js";
 import { DICT, LOCALE_COOKIE } from "../i18n/dict.js";
 import {
   renderAboutPage,
   renderAgentPage,
   renderHomePage,
   renderNotFoundPage,
+  renderSkillPage,
   renderSponsorPage
 } from "./pages.js";
+import { getSkillMarkdown } from "./skill.js";
 
 const ASSET_URLS = {
   cssHref: "__ASSET_CSS_HREF__",
@@ -130,6 +133,58 @@ export default {
       });
     }
 
+    if (pathname === "/api/recommend" && (method === "GET" || method === "HEAD")) {
+      const hasExplicitLocale = url.searchParams.has("locale") || url.searchParams.has("lang");
+      const defaultLocale = hasExplicitLocale ? "en" : negotiateLocale(request);
+      const origin = url.hostname === "127.0.0.1" || url.hostname === "localhost"
+        ? "https://browserly.maoxunxing.com"
+        : url.origin;
+      const result = recommendAgents(url.searchParams, { defaultLocale, baseOrigin: origin });
+      return Response.json(result, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": hasExplicitLocale ? "public, max-age=300" : "private, max-age=60",
+          Vary: "Cookie, Accept-Language",
+          "X-Content-Type-Options": "nosniff"
+        }
+      });
+    }
+
+    const lowerPath = pathname.toLowerCase();
+    if (
+      (lowerPath === "/skill.md" || lowerPath === "/skills/momo-browserly-advisor/skill.md") &&
+      (method === "GET" || method === "HEAD")
+    ) {
+      const origin = url.hostname === "127.0.0.1" || url.hostname === "localhost"
+        ? "https://browserly.maoxunxing.com"
+        : url.origin;
+      return new Response(getSkillMarkdown("en", origin), {
+        headers: {
+          "Content-Type": "text/markdown; charset=utf-8",
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "public, max-age=300",
+          "X-Content-Type-Options": "nosniff"
+        }
+      });
+    }
+
+    if (
+      (lowerPath === "/skill.zh-cn.md" || lowerPath === "/skills/momo-browserly-advisor/skill.zh-cn.md") &&
+      (method === "GET" || method === "HEAD")
+    ) {
+      const origin = url.hostname === "127.0.0.1" || url.hostname === "localhost"
+        ? "https://browserly.maoxunxing.com"
+        : url.origin;
+      return new Response(getSkillMarkdown("zh", origin), {
+        headers: {
+          "Content-Type": "text/markdown; charset=utf-8",
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "public, max-age=300",
+          "X-Content-Type-Options": "nosniff"
+        }
+      });
+    }
+
     if (pathname === "/llms.txt" && (method === "GET" || method === "HEAD")) {
       return new Response(getLlmsTxt(), {
         headers: {
@@ -166,6 +221,10 @@ export default {
       if (pathname === "/") {
         const q = url.searchParams.get("q") || "";
         return htmlResponse(renderHomePage(catalog, locale, dict, ASSET_URLS, q), 200);
+      }
+
+      if (pathname === "/skill") {
+        return htmlResponse(renderSkillPage(catalog, locale, dict, ASSET_URLS), 200);
       }
 
       if (pathname === "/about") {

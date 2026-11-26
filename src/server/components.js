@@ -86,6 +86,7 @@ ${scriptsHtml}
 export function renderHeader({ locale, dict, currentPath, searchQuery = "" }) {
   const navItems = [
     { href: "/", key: "matrix", active: currentPath === "/" || currentPath.startsWith("/agent/") },
+    { href: "/skill", key: "skill", active: currentPath === "/skill" },
     { href: "/about", key: "method", active: currentPath === "/about" },
     { href: "/sponsor", key: "sponsor", active: currentPath === "/sponsor" }
   ];
@@ -239,6 +240,7 @@ export function renderHomeFooter({ agents, coverage, locale, dict }) {
         <div class="bbf-col">
           <h2 data-i18n="footer.explore">${esc(dict.footer.explore)}</h2>
           <a href="/#catalog" data-i18n="footer.all">${esc(dict.footer.all)}</a>
+          <a href="/skill" data-i18n="nav.skill">${esc(dict.nav.skill)}</a>
           <a href="/about" data-i18n="nav.method">${esc(dict.nav.method)}</a>
           <a href="/sponsor" data-i18n="nav.sponsor">${esc(dict.nav.sponsor)}</a>
         </div>
