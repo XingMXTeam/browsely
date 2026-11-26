@@ -79,7 +79,13 @@ function minifyCss(css) {
     out += ch;
     i++;
   }
-  return out.trim();
+  return out
+    .trim()
+    .replace(/(?<=[:,\s(])0(\.\d+)/g, "$1")
+    .replace(/(?<=[:,\s(])0(?:px|rem|em)(?=[;\s,)}])/g, "0")
+    .replace(/#([0-9a-fA-F])\1([0-9a-fA-F])\2([0-9a-fA-F])\3(?=[;\s,)}])/g, "#$1$2$3")
+    .replace(/\s*!important/g, "!important")
+    .replace(/rgba\((\d+),(\d+),(\d+),/g, "rgb($1 $2 $3/");
 }
 
 /**

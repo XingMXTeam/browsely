@@ -2526,6 +2526,20 @@ html[data-locale="en"] .locale-thumb {
   color: var(--ink-muted);
 }
 
+@media (max-width: 767px) {
+  .site-header { position: relative; border-bottom-color: var(--hairline); }
+  .header-inner { gap: 0.4rem 0.7rem; min-height: 0; padding-block: 0.45rem; }
+  .header-nav { overflow-x: auto; scrollbar-width: none; }
+  .nav-link { flex: none; min-height: 34px; padding: 0 0.7rem; font-size: 0.83rem; }
+  .catalog-section { scroll-margin-top: 1rem; }
+  .presets-bar { margin-inline: -1rem; padding-inline: 1rem; }
+  .compare-modal { border-radius: 18px; max-height: 92vh; }
+  .modal-head { padding: 0.85rem 1rem; }
+  .compare-table { min-width: 0; font-size: 0.78rem; }
+  .compare-table th, .compare-table td { padding: 0.6rem; min-width: 146px; }
+  .compare-table .compare-attr-col { width: 84px; min-width: 84px; max-width: 84px; padding: 0.6rem 0.45rem; font-size: 0.66rem; letter-spacing: 0.02em; word-break: break-word; }
+}
+
 .compare-note {
   margin-top: 0.4rem;
   font-size: 0.78rem;
@@ -2845,11 +2859,15 @@ html[data-locale="en"] .locale-thumb {
   flex-direction: column;
   gap: 1.15rem;
   transform: translate3d(100%, 0, 0);
-  transition: transform var(--dur-med) var(--ease-out);
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform var(--dur-med) var(--ease-out), visibility var(--dur-med);
 }
 
 .demo-drawer.is-open {
   transform: translate3d(0, 0, 0);
+  visibility: visible;
+  pointer-events: auto;
 }
 
 /* ---------- Toast ---------- */
