@@ -1,0 +1,351 @@
+import {
+  getCatalog,
+  getLlmsTxt,
+  getRelatedAgents,
+  toApiAgentsJson
+} from "../data/catalog.js";
+import { recommendAgents } from "../data/recommender.js";
+import { DICT, LOCALE_COOKIE } from "../i18n/dict.js";
+import {
+  renderAboutPage,
+  renderAgentPage,
+  renderHomePage,
+  renderNotFoundPage,
+  renderSkillPage,
+  renderSponsorPage
+} from "./pages.js";
+import { getSkillMarkdown } from "./skill.js";
+
+const ASSET_URLS = {
+  cssHref: "__ASSET_CSS_HREF__",
+  jsHref: "__ASSET_JS_HREF__"
+};
+
+const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="8" fill="#121313"/>
+  <rect x="6.5" y="7.5" width="19" height="17" rx="3.5" stroke="#fbfaf6" stroke-width="2"/>
+  <path d="M6.5 12.5h19" stroke="#fbfaf6" stroke-width="2"/>
+  <circle cx="9.8" cy="10" r="1.1" fill="#e9a78b"/>
+  <path d="M13.6 15.4v6.2c0 .8.9 1.3 1.6.9l4.6-3.1c.6-.4.6-1.3 0-1.7l-4.6-3.1c-.7-.5-1.6 0-1.6.8Z" fill="#f4ff71"/>
+</svg>`;
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function parseCookies(header) {
+  const out = Object.create(null);
+  if (!header) return out;
+  for (const part of header.split(";")) {
+    const eq = part.indexOf("=");
+    if (eq === -1) continue;
+    const k = part.slice(0, eq).trim();
+    const v = part.slice(eq + 1).trim();
+    if (k) out[k] = decodeURIComponent(v);
+  }
+  return out;
+}
+
+function negotiateLocale(request) {
+  const cookies = parseCookies(request.headers.get("cookie"));
+  const cookieVal = cookies[LOCALE_COOKIE];
+  if (cookieVal === "zh" || cookieVal === "en") return cookieVal;
+
+  const accept = request.headers.get("accept-language");
+  if (!accept) return "en";
+  const langs = accept
+    .split(",")
+    .map((part) => {
+      const [tag, ...params] = part.trim().split(";");
+      const qPart = params.find((p) => p.trim().startsWith("q="));
+      const q = qPart ? Number(qPart.trim().slice(2)) : 1;
+      return { tag: tag.trim().toLowerCase(), q: Number.isFinite(q) ? q : 1 };
+    })
+    .sort((a, b) => b.q - a.q);
+
+  for (const item of langs) {
+    if (item.tag.startsWith("zh")) return "zh";
+    if (item.tag.startsWith("en")) return "en";
+  }
+  return "en";
+}
+
+function htmlResponse(html, status = 200) {
+  const headers = {
+    "Content-Type": "text/html; charset=utf-8",
+    Vary: "Cookie, Accept-Language",
+    "Cache-Control": status === 200 ? "private, no-cache" : "no-store",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  };
+  if (status === 200) {
+    headers.Link = `<${ASSET_URLS.cssHref}>; rel=preload; as=style, </fonts/bricolage-grotesque.woff2>; rel=preload; as=font; type="font/woff2"; crossorigin`;
+  }
+  return new Response(html, { status, headers });
+}
+
+function buildSitemapXml(catalog, origin) {
+  const urls = [
+    { loc: `${origin}/`, lastmod: catalog.checked, priority: "1.0" },
+    { loc: `${origin}/skill`, lastmod: catalog.checked, priority: "0.9" },
+    { loc: `${origin}/about`, lastmod: catalog.checked, priority: "0.7" },
+    { loc: `${origin}/sponsor`, lastmod: catalog.checked, priority: "0.4" },
+    ...catalog.agents.map((a) => ({
+      loc: `${origin}/agent/${a.id}`,
+      lastmod: a.lastChecked,
+      priority: "0.8"
+    }))
+  ];
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...urls.map(
+      (u) => `  <url><loc>${u.loc}</loc><lastmod>${u.lastmod}</lastmod><priority>${u.priority}</priority></url>`
+    ),
+    "</urlset>"
+  ].join("\n");
+}
+
+function buildRobotsTxt(origin) {
+  return [
+    "User-agent: *",
+    "Allow: /",
+    "",
+    `Sitemap: ${origin}/sitemap.xml`,
+    `# Agent Skill: ${origin}/SKILL.md`,
+    `# LLM Index: ${origin}/llms.txt`
+  ].join("\n") + "\n";
+}
+
+function withAssetCacheHeaders(pathname, resp) {
+  const headers = new Headers(resp.headers);
+  const isImmutable = pathname.startsWith("/assets/") || pathname.startsWith("/fonts/");
+  headers.set(
+    "Cache-Control",
+    isImmutable ? "public, max-age=31536000, immutable" : "public, max-age=604800, stale-while-revalidate=86400"
+  );
+  headers.set("X-Content-Type-Options", "nosniff");
+  return new Response(resp.body, { status: resp.status, statusText: resp.statusText, headers });
+}
+
+function trimField(val, maxLen) {
+  return typeof val === "string" ? val.trim().slice(0, maxLen) : "";
+}
+
+async function handleSponsorPost(request) {
+  let body = null;
+  try {
+    body = await request.json();
+  } catch {
+    body = null;
+  }
+  const obj = body && typeof body === "object" ? body : {};
+  const name = trimField(obj.name, 120);
+  const emailRaw = typeof obj.email === "string" ? obj.email.trim().toLowerCase() : "";
+  const email = EMAIL_RE.test(emailRaw) && emailRaw.length <= 200 ? emailRaw : null;
+  const url = trimField(obj.url, 300);
+  const note = trimField(obj.note, 2000);
+
+  if (!name || !email || note.length < 8) {
+    return Response.json(
+      { ok: false, error: "Name, a valid email, and a short note are required." },
+      { status: 400 }
+    );
+  }
+  if (url && !/^https?:\/\//i.test(url)) {
+    return Response.json(
+      { ok: false, error: "Site should start with http:// or https://." },
+      { status: 400 }
+    );
+  }
+  return Response.json({ ok: true, stored: "noop" });
+}
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const pathname = url.pathname.length > 1 && url.pathname.endsWith("/")
+      ? url.pathname.slice(0, -1)
+      : url.pathname;
+    const method = request.method.toUpperCase();
+    const lowerPath = pathname.toLowerCase();
+    const canonicalOrigin =
+      url.hostname === "127.0.0.1" || url.hostname === "localhost"
+        ? "https://browserly.maoxunxing.com"
+        : url.origin;
+
+    if (
+      method === "OPTIONS" &&
+      (pathname.startsWith("/api/") || lowerPath.endsWith(".md") || pathname === "/llms.txt")
+    ) {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, HEAD, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Max-Age": "86400"
+        }
+      });
+    }
+
+    if (pathname === "/robots.txt" && (method === "GET" || method === "HEAD")) {
+      return new Response(buildRobotsTxt(canonicalOrigin), {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "public, max-age=86400",
+          "X-Content-Type-Options": "nosniff"
+        }
+      });
+    }
+
+    if (pathname === "/sitemap.xml" && (method === "GET" || method === "HEAD")) {
+      return new Response(buildSitemapXml(getCatalog(), canonicalOrigin), {
+        headers: {
+          "Content-Type": "application/xml; charset=utf-8",
+          "Cache-Control": "public, max-age=3600",
+          "X-Content-Type-Options": "nosniff"
+        }
+      });
+    }
+
+    if (pathname === "/api/agents" && (method === "GET" || method === "HEAD")) {
+      const catalog = getCatalog();
+      return Response.json(toApiAgentsJson(catalog.agents), {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "public, max-age=300",
+          "X-Content-Type-Options": "nosniff"
+        }
+      });
+    }
+
+    if (pathname === "/api/recommend" && (method === "GET" || method === "HEAD")) {
+      const hasExplicitLocale = url.searchParams.has("locale") || url.searchParams.has("lang");
+      const defaultLocale = hasExplicitLocale ? "en" : negotiateLocale(request);
+      const origin = url.hostname === "127.0.0.1" || url.hostname === "localhost"
+        ? "https://browserly.maoxunxing.com"
+        : url.origin;
+      const result = recommendAgents(url.searchParams, { defaultLocale, baseOrigin: origin });
+      return Response.json(result, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": hasExplicitLocale ? "public, max-age=300" : "private, max-age=60",
+          Vary: "Cookie, Accept-Language",
+          "X-Content-Type-Options": "nosniff"
+        }
+      });
+    }
+
+    if (
+      (lowerPath === "/skill.md" || lowerPath === "/skills/momo-browserly-advisor/skill.md") &&
+      (method === "GET" || method === "HEAD")
+    ) {
+      return new Response(getSkillMarkdown("en", canonicalOrigin), {
+        headers: {
+          "Content-Type": "text/markdown; charset=utf-8",
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "public, max-age=300",
+          "X-Content-Type-Options": "nosniff"
+        }
+      });
+    }
+
+    if (
+      (lowerPath === "/skill.zh-cn.md" || lowerPath === "/skills/momo-browserly-advisor/skill.zh-cn.md") &&
+      (method === "GET" || method === "HEAD")
+    ) {
+      return new Response(getSkillMarkdown("zh", canonicalOrigin), {
+        headers: {
+          "Content-Type": "text/markdown; charset=utf-8",
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "public, max-age=300",
+          "X-Content-Type-Options": "nosniff"
+        }
+      });
+    }
+
+    if (pathname === "/llms.txt" && (method === "GET" || method === "HEAD")) {
+      return new Response(getLlmsTxt(), {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "public, max-age=300",
+          "X-Content-Type-Options": "nosniff"
+        }
+      });
+    }
+
+    if (pathname === "/icon.svg" && (method === "GET" || method === "HEAD")) {
+      return new Response(ICON_SVG, {
+        headers: {
+          "Content-Type": "image/svg+xml; charset=utf-8",
+          "Cache-Control": "public, max-age=86400"
+        }
+      });
+    }
+
+    if (pathname === "/api/newsletter" && method === "POST") {
+      return Response.json({ ok: false, error: "Newsletter is not configured." }, { status: 501 });
+    }
+
+    if (pathname === "/api/sponsor" && method === "POST") {
+      return handleSponsorPost(request);
+    }
+
+    if (method === "GET" || method === "HEAD") {
+      const catalog = getCatalog();
+      const locale = negotiateLocale(request);
+      const dict = DICT[locale];
+
+      if (pathname === "/") {
+        const q = url.searchParams.get("q") || "";
+        return htmlResponse(renderHomePage(catalog, locale, dict, ASSET_URLS, q), 200);
+      }
+
+      if (pathname === "/skill") {
+        return htmlResponse(renderSkillPage(catalog, locale, dict, ASSET_URLS), 200);
+      }
+
+      if (pathname === "/about") {
+        return htmlResponse(renderAboutPage(catalog, locale, dict, ASSET_URLS), 200);
+      }
+
+      if (pathname === "/sponsor") {
+        return htmlResponse(renderSponsorPage(catalog, locale, dict, ASSET_URLS), 200);
+      }
+
+      if (pathname.startsWith("/agent/")) {
+        const id = decodeURIComponent(pathname.slice("/agent/".length));
+        const idx = catalog.agents.findIndex((a) => a.id === id);
+        if (idx === -1) {
+          return htmlResponse(renderNotFoundPage(catalog, locale, dict, ASSET_URLS), 404);
+        }
+        const agent = catalog.agents[idx];
+        const related = getRelatedAgents(agent.id, catalog.agents);
+        const total = catalog.agents.length;
+        const prevNext = {
+          prev: catalog.agents[(idx - 1 + total) % total],
+          next: catalog.agents[(idx + 1) % total]
+        };
+        return htmlResponse(
+          renderAgentPage(catalog, agent, related, prevNext, locale, dict, ASSET_URLS),
+          200
+        );
+      }
+
+      if (env && env.ASSETS) {
+        const assetResp = await env.ASSETS.fetch(request);
+        if (assetResp.status !== 404) {
+          return withAssetCacheHeaders(pathname, assetResp);
+        }
+      }
+
+      const accept = request.headers.get("accept") || "";
+      if (accept.includes("text/html") || !pathname.includes(".")) {
+        return htmlResponse(renderNotFoundPage(catalog, locale, dict, ASSET_URLS), 404);
+      }
+      return new Response("Not Found", { status: 404 });
+    }
+
+    return new Response("Method Not Allowed", { status: 405 });
+  }
+};

@@ -1,0 +1,12 @@
+{
+  "name": "browserly",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/dev.mjs",
+    "verify": "node scripts/verify.mjs",
+    "check": "node scripts/build.mjs && node scripts/verify.mjs",
+    "deploy": "node scripts/build.mjs && node scripts/verify.mjs && python3 upload_and_version.py --deploy"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "skill": "momo-browserly-advisor",
+  "note": "Trigger-precision golden cases compatible with XingMXTeam/agent-skills `harness skills eval` (~75% should-trigger, ~25% should-not-trigger).",
+  "cases": [
+    {
+      "id": "BA1",
+      "prompt": "Which browser MCP server should I connect to Claude Code if I need to reuse my already logged-in Chrome tabs locally?",
+      "expect": "momo-browserly-advisor"
+    },
+    {
+      "id": "BA2",
+      "prompt": "Compare Browser Use, Stagehand, and Skyvern for an unattended cloud scraping pipeline behind Cloudflare.",
+      "expect": "momo-browserly-advisor"
+    },
+    {
+      "id": "BA3",
+      "prompt": "帮我选一个免费的开源浏览器 Agent，要求数据不出内网、MIT/Apache-2.0 协议且支持 MCP。",
+      "expect": "momo-browserly-advisor"
+    },
+    {
+      "id": "BA4",
+      "prompt": "Our target site is mostly canvas/complex visual UI — what vision or hybrid browser agent fits best?",
+      "expect": "momo-browserly-advisor"
+    },
+    {
+      "id": "BA5",
+      "prompt": "We need an AI agent to operate our logged-in WeChat / ERP backend without uploading passwords to the cloud.",
+      "expect": "momo-browserly-advisor"
+    },
+    {
+      "id": "BA6",
+      "prompt": "Run our existing e2e-cases.json Playwright suite and score the rubric for checkout cycle 2.",
+      "expect": "e2e-testing"
+    },
+    {
+      "id": "BA7",
+      "prompt": "Verify our REST API response schema and status codes for POST /api/orders.",
+      "expect": "api-testing"
+    }
+  ]
+}
