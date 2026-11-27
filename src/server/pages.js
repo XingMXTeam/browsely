@@ -51,7 +51,7 @@ function renderMarqueeRow(agents, reverse = false) {
         return `<li${clone ? ' aria-hidden="true"' : ""}>
           <button type="button" class="marquee-tile" style="background:${esc(a.pastel)}" data-focus-agent="${esc(a.id)}"${clone ? ' tabindex="-1"' : ` aria-label="${esc(a.name)}"`}>
             <span class="marquee-tip">${esc(a.name)} · ${esc(a.pricingBadge)}</span>
-            <img src="${esc(a.logo)}" alt="">
+            <img src="${esc(a.logo)}" alt="" width="44" height="44" decoding="async">
           </button>
         </li>`;
       })
@@ -201,7 +201,8 @@ export function renderHomePage(catalog, locale, dict, assets, initialQuery = "")
 
   const body = `
 ${renderHeader({ locale, dict, currentPath: "/", searchQuery: initialQuery })}
-<main id="top">
+<main id="main-content">
+  <span id="top"></span>
   <section class="hero-stage">
     <div class="container hero-inner">
       <div class="hero-eyebrow fade-up">
@@ -237,22 +238,22 @@ ${renderHeader({ locale, dict, currentPath: "/", searchQuery: initialQuery })}
         <button type="button" class="btn btn-ghost" id="compare-top-btn" data-i18n="home.compareTop">${esc(dict.home.compareTop)}</button>
       </div>
       <div class="hero-stats fade-up delay-3" aria-label="${esc(dict.home.comparison)}">
-        <div class="stat-cell">
+        <a href="#catalog" class="stat-cell stat-cell-link">
           <span class="stat-value tabular-nums">${stats.total}</span>
           <span class="stat-label" data-i18n="home.stats.agents">${esc(dict.home.stats.agents)}</span>
-        </div>
-        <div class="stat-cell">
+        </a>
+        <button type="button" class="stat-cell stat-cell-link" data-quick-stat="demo">
           <span class="stat-value tabular-nums">${stats.withDemo}</span>
           <span class="stat-label" data-i18n="home.stats.demos">${esc(dict.home.stats.demos)}</span>
-        </div>
-        <div class="stat-cell">
+        </button>
+        <a href="#catalog" class="stat-cell stat-cell-link">
           <span class="stat-value tabular-nums">7</span>
           <span class="stat-label" data-i18n="home.stats.dimensions">${esc(dict.home.stats.dimensions)}</span>
-        </div>
-        <div class="stat-cell">
+        </a>
+        <a href="/about" class="stat-cell stat-cell-link">
           <span class="stat-value tabular-nums">${esc(checked)}</span>
           <span class="stat-label" data-i18n="home.stats.dated">${esc(dict.home.stats.dated)}</span>
-        </div>
+        </a>
       </div>
     </div>
     <div class="bb-wallwrap" aria-label="${esc(dict.home.comparison)}">
@@ -346,7 +347,7 @@ ${renderHeader({ locale, dict, currentPath: "/", searchQuery: initialQuery })}
       </div>
     </div>
 
-    <section id="skill-api" class="api-band" aria-label="${esc(dict.apiBand.badge)}">
+    <section id="skill-api" class="api-band" data-reveal aria-label="${esc(dict.apiBand.badge)}">
       <div class="api-band-grid">
         <div>
           <span class="api-eyebrow" data-i18n="apiBand.badge">${esc(dict.apiBand.badge)}</span>
@@ -502,36 +503,52 @@ ${renderHomeFooter({ agents, coverage, locale, dict })}
 <div class="toast-pill" id="toast-pill" role="status" aria-live="polite"></div>
 `;
 
-  const clientAgents = agents.map((a) => ({
-    id: a.id,
-    name: a.name,
-    logo: a.logo,
-    pastel: a.pastel,
-    steward: a.steward,
-    docsUrl: a.docsUrl,
-    perception: a.perception,
-    perceptionNote: a.perceptionNote,
-    license: a.license,
-    licenseNote: a.licenseNote,
-    hosting: a.hosting,
-    hostingNote: a.hostingNote,
-    mcp: a.mcp,
-    mcpNote: a.mcpNote,
-    authModel: a.authModel,
-    credentials: a.credentials,
-    antiBot: a.antiBot,
-    antiBotBadge: a.antiBotBadge,
-    pricing: a.pricing,
-    pricingBadge: a.pricingBadge,
-    lastChecked: a.lastChecked,
-    unknowns: a.unknowns,
-    sources: a.sources.map((s) => s.url),
-    video: a.video,
-    videoPoster: a.videoPoster,
-    videoPosterKind: a.videoPosterKind,
-    videoSource: a.videoSource,
-    youtubeId: a.youtubeId
-  }));
+  const clientAgents = agents.map((a) => {
+    const o = {
+      id: a.id,
+      name: a.name,
+      logo: a.logo,
+      pastel: a.pastel,
+      steward: a.steward,
+      docsUrl: a.docsUrl,
+      perception: a.perception,
+      perceptionNote: a.perceptionNote,
+      license: a.license,
+      licenseNote: a.licenseNote,
+      hosting: a.hosting,
+      hostingNote: a.hostingNote,
+      mcp: a.mcp,
+      mcpNote: a.mcpNote,
+      authModel: a.authModel,
+      credentials: a.credentials,
+      antiBot: a.antiBot,
+      antiBotBadge: a.antiBotBadge,
+      pricing: a.pricing,
+      pricingBadge: a.pricingBadge,
+      lastChecked: a.lastChecked,
+      unknowns: a.unknowns,
+      sources: a.sources.map((s) => s.url)
+    };
+    if (a.video) o.video = a.video;
+    if (a.videoPoster) o.videoPoster = a.videoPoster;
+    if (a.videoPosterKind) o.videoPosterKind = a.videoPosterKind;
+    if (a.videoSource) o.videoSource = a.videoSource;
+    if (a.youtubeId) o.youtubeId = a.youtubeId;
+    return o;
+  });
+
+  const homeJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: "Browserly — Browser-driving AI Agents Matrix",
+    description: dict.meta.description,
+    url: "https://browserly.maoxunxing.com/",
+    dateModified: checked,
+    distribution: [
+      { "@type": "DataDownload", encodingFormat: "application/json", contentUrl: "https://browserly.maoxunxing.com/api/agents" },
+      { "@type": "DataDownload", encodingFormat: "text/markdown", contentUrl: "https://browserly.maoxunxing.com/SKILL.md" }
+    ]
+  };
 
   return renderDocument({
     title: dict.meta.title,
@@ -542,6 +559,7 @@ ${renderHomeFooter({ agents, coverage, locale, dict })}
     jsHref: assets.jsHref,
     pageType: "home",
     body,
+    jsonLd: homeJsonLd,
     inlineScripts: [
       {
         id: "__BROWSLY_DATA__",
@@ -617,7 +635,7 @@ export function renderAgentPage(catalog, agent, related, prevNext, locale, dict,
   const body = `
 <div class="scroll-progress" aria-hidden="true"><span></span></div>
 ${renderHeader({ locale, dict, currentPath: `/agent/${agent.id}` })}
-<main class="container dossier-main">
+<main id="main-content" class="container dossier-main">
   <nav class="breadcrumb" aria-label="Breadcrumb">
     <a href="/" data-i18n="detail.breadcrumbMatrix">${esc(dict.detail.breadcrumbMatrix)}</a>
     ${iconChevronRight()}
@@ -786,6 +804,16 @@ ${renderDetailFooter({ dict })}
     jsHref: assets.jsHref,
     pageType: "agent",
     body,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: agent.name,
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "Cross-platform",
+      url: agent.homepage || agent.docsUrl,
+      dateModified: agent.lastChecked,
+      author: { "@type": "Organization", name: agent.steward }
+    },
     inlineScripts: [
       { id: "__BROWSLY_AGENT__", data: agentPayload },
       { id: "__BROWSLY_I18N__", data: { key: "detail", en: DICT.en.detail, zh: DICT.zh.detail } }
@@ -800,7 +828,7 @@ export function renderAboutPage(catalog, locale, dict, assets) {
   const body = `
 <div class="scroll-progress" aria-hidden="true"><span></span></div>
 ${renderHeader({ locale, dict, currentPath: "/about" })}
-<main class="container-narrow page-main">
+<main id="main-content" class="container-narrow page-main">
   <header style="display:flex;flex-direction:column;gap:0.9rem;">
     <h1 class="type-page" data-i18n="about.title">${esc(dict.about.title)}</h1>
     <p style="max-width:65ch;font-size:1.05rem;line-height:1.65;color:var(--ink-2);">
@@ -883,7 +911,7 @@ ${renderHeader({ locale, dict, currentPath: "/about" })}
     </div>
   </section>
 </main>
-${renderSimpleFooter({ coverage, dict })}
+${renderSimpleFooter({ coverage, locale, dict })}
 <div class="toast-pill" id="toast-pill" role="status" aria-live="polite"></div>
 `;
 
@@ -906,7 +934,7 @@ export function renderSponsorPage(catalog, locale, dict, assets) {
   const { coverage } = catalog;
   const body = `
 ${renderHeader({ locale, dict, currentPath: "/sponsor" })}
-<main class="container-narrow page-main">
+<main id="main-content" class="container-narrow page-main">
   <header style="display:flex;flex-direction:column;gap:0.8rem;">
     <h1 class="type-page" data-i18n="sponsor.title">${esc(dict.sponsor.title)}</h1>
     <p style="max-width:52ch;font-size:1.1rem;line-height:1.65;color:var(--ink);" data-i18n="sponsor.body">${esc(dict.sponsor.body)}</p>
@@ -926,7 +954,7 @@ ${renderHeader({ locale, dict, currentPath: "/sponsor" })}
     <div>${renderWeChatBlock(dict)}</div>
   </section>
 </main>
-${renderSimpleFooter({ coverage, dict })}
+${renderSimpleFooter({ coverage, locale, dict })}
 <div class="toast-pill" id="toast-pill" role="status" aria-live="polite"></div>
 `;
 
@@ -960,7 +988,7 @@ export function renderSkillPage(catalog, locale, dict, assets) {
   const body = `
 <div class="scroll-progress" aria-hidden="true"><span></span></div>
 ${renderHeader({ locale, dict, currentPath: "/skill" })}
-<main class="container-narrow page-main">
+<main id="main-content" class="container-narrow page-main">
   <header style="display:flex;flex-direction:column;gap:0.85rem;align-items:flex-start;">
     <span class="advisor-eyebrow" data-i18n="skillPage.badge">${esc(sp.badge)}</span>
     <h1 class="type-page" data-i18n="skillPage.title">${esc(sp.title)}</h1>
@@ -1012,7 +1040,10 @@ ${renderHeader({ locale, dict, currentPath: "/skill" })}
       ${sp.demoSteps
         .map(
           (step, i) => `<li class="skill-chat-item">
-            <span class="skill-chat-role" data-i18n="skillPage.demoSteps.${i}.role">${esc(step.role)}</span>
+            <div class="skill-chat-head">
+              <span class="skill-chat-num tabular-nums">0${i + 1}</span>
+              <span class="skill-chat-role" data-i18n="skillPage.demoSteps.${i}.role">${esc(step.role)}</span>
+            </div>
             <p class="skill-chat-text" data-i18n="skillPage.demoSteps.${i}.text">${esc(step.text)}</p>
           </li>`
         )
@@ -1048,7 +1079,7 @@ ${renderHeader({ locale, dict, currentPath: "/skill" })}
     </ul>
   </section>
 </main>
-${renderSimpleFooter({ coverage, dict })}
+${renderSimpleFooter({ coverage, locale, dict })}
 <div class="toast-pill" id="toast-pill" role="status" aria-live="polite"></div>
 `;
 
@@ -1071,7 +1102,7 @@ export function renderNotFoundPage(catalog, locale, dict, assets) {
   const { coverage } = catalog;
   const body = `
 ${renderHeader({ locale, dict, currentPath: "/404" })}
-<main class="container-narrow page-main">
+<main id="main-content" class="container-narrow page-main">
   <section class="dossier-card" style="text-align:center;padding:3rem 1.5rem;">
     <span class="badge badge--warn">${esc(dict.notFound.code)}</span>
     <h1 class="type-page" style="margin-top:0.75rem;" data-i18n="notFound.title">${esc(dict.notFound.title)}</h1>
@@ -1081,7 +1112,7 @@ ${renderHeader({ locale, dict, currentPath: "/404" })}
     </div>
   </section>
 </main>
-${renderSimpleFooter({ coverage, dict })}
+${renderSimpleFooter({ coverage, locale, dict })}
 `;
 
   return renderDocument({

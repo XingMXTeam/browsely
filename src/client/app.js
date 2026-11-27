@@ -109,15 +109,19 @@ function parseJsonScript(id) {
     toastTimer = window.setTimeout(() => toastEl.classList.remove("is-visible"), 2200);
   }
 
-  /* ---------- Scroll Elevation & Progress Hairline ---------- */
+  /* ---------- Scroll Elevation, Progress Hairline & Back-to-Top ---------- */
   const headerEl = document.getElementById("site-header");
   const hasProgress = Boolean(document.querySelector(".scroll-progress"));
+  const backTopBtn = document.getElementById("back-to-top");
   let scrollRaf = 0;
   function updateScrollUi() {
     scrollRaf = 0;
     const y = window.scrollY || window.pageYOffset || 0;
     if (headerEl) {
       headerEl.dataset.scrolled = y > 8 ? "true" : "false";
+    }
+    if (backTopBtn) {
+      backTopBtn.classList.toggle("is-visible", y > 680);
     }
     if (hasProgress) {
       const doc = document.documentElement;
@@ -126,6 +130,9 @@ function parseJsonScript(id) {
       doc.style.setProperty("--scroll-progress", ratio.toFixed(4));
     }
   }
+  backTopBtn?.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  });
   window.addEventListener(
     "scroll",
     () => {
@@ -134,6 +141,24 @@ function parseJsonScript(id) {
     { passive: true }
   );
   updateScrollUi();
+
+  /* ---------- Restrained Below-the-Fold Scroll Reveal ---------- */
+  const revealEls = document.querySelectorAll("[data-reveal]");
+  if (revealEls.length > 0 && !prefersReducedMotion() && "IntersectionObserver" in window) {
+    document.documentElement.classList.add("has-reveal");
+    const ro = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add("is-revealed");
+            ro.unobserve(e.target);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -40px 0px", threshold: 0.05 }
+    );
+    revealEls.forEach((el) => ro.observe(el));
+  }
 
   /* ---------- Locale Switching (Zero Reload) ---------- */
   function readStoredLocale() {
@@ -178,6 +203,12 @@ function parseJsonScript(id) {
         if (typeof val === "string" && span) span.textContent = val;
       }
     });
+
+    const covEl = document.querySelector("[data-coverage-text]");
+    if (covEl && !homeData) {
+      const cVal = nextLocale === "zh" ? covEl.dataset.coverageZh : covEl.dataset.coverageEn;
+      if (cVal) covEl.textContent = cVal;
+    }
 
     if (homeData) {
       const eyebrow = document.querySelector("[data-hero-eyebrow]");
@@ -308,13 +339,26 @@ function parseJsonScript(id) {
       const msg = getByPath(dict, toastKey);
       if (typeof msg === "string") showToast(msg);
     }
+    const oldSvg = btn.querySelector("svg");
+    const origSvgHtml = oldSvg && !btn.dataset.origSvg ? oldSvg.outerHTML : btn.dataset.origSvg;
+    if (oldSvg && origSvgHtml) {
+      btn.dataset.origSvg = origSvgHtml;
+      oldSvg.outerHTML = SVG_ICONS.check;
+    }
     btn.classList.add("is-copied");
-    window.setTimeout(() => {
-      btn.classList.remove("is-copied");
-      if (span && defKey) {
-        span.textContent = getByPath(DICT[locale], defKey) || span.textContent;
-      }
-    }, 1800);
+    window.clearTimeout(Number(btn.dataset.copyTimer || 0));
+    btn.dataset.copyTimer = String(
+      window.setTimeout(() => {
+        btn.classList.remove("is-copied");
+        if (span && defKey) {
+          span.textContent = getByPath(DICT[locale], defKey) || span.textContent;
+        }
+        const curSvg = btn.querySelector("svg");
+        if (curSvg && btn.dataset.origSvg) {
+          curSvg.outerHTML = btn.dataset.origSvg;
+        }
+      }, 1800)
+    );
   });
 
   /* ---------- Search & Global Shortcuts ---------- */
@@ -397,6 +441,30 @@ function parseJsonScript(id) {
       if (isAdvisorModalOpen()) closeAdvisorModal();
       else if (isCompareModalOpen()) closeCompareModal();
       else if (state.demoAgentId) closeDemoDrawer();
+    } else if (ev.key === "Tab" && homeData) {
+      const activeModal = isAdvisorModalOpen()
+        ? advisorBackdrop
+        : isCompareModalOpen()
+          ? compareBackdrop
+          : state.demoAgentId
+            ? demoDrawer
+            : null;
+      if (activeModal) {
+        const focusables = [...activeModal.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(
+          (el) => el.offsetParent !== null
+        );
+        if (focusables.length > 0) {
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (ev.shiftKey && document.activeElement === first) {
+            ev.preventDefault();
+            last.focus();
+          } else if (!ev.shiftKey && document.activeElement === last) {
+            ev.preventDefault();
+            first.focus();
+          }
+        }
+      }
     }
   });
 
@@ -668,9 +736,9 @@ function renderEvidencePanel(agent, showTitle = true) {
     const playLabel = formatTemplate(dict.motion.play, { name: agent.name });
 
     const mediaStage = agent.videoPoster
-      ? `<img src="${esc(agent.videoPoster)}" alt="" loading="lazy" decoding="async" class="card-stage-media${isDiag ? " is-diagram" : ""}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-         <div class="card-stage-fallback" style="display:none;background:${esc(agent.pastel)}"><div class="card-stage-medallion"><img src="${esc(agent.logo)}" alt="" width="48" height="48"></div></div>`
-      : `<div class="card-stage-fallback" style="background:${esc(agent.pastel)}"><div class="card-stage-medallion"><img src="${esc(agent.logo)}" alt="" width="48" height="48"></div></div>`;
+      ? `<img src="${esc(agent.videoPoster)}" alt="" width="640" height="380" loading="lazy" decoding="async" class="card-stage-media${isDiag ? " is-diagram" : ""}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+         <div class="card-stage-fallback" style="display:none;background:${esc(agent.pastel)}"><div class="card-stage-medallion"><img src="${esc(agent.logo)}" alt="" width="48" height="48" loading="lazy" decoding="async"></div></div>`
+      : `<div class="card-stage-fallback" style="background:${esc(agent.pastel)}"><div class="card-stage-medallion"><img src="${esc(agent.logo)}" alt="" width="48" height="48" loading="lazy" decoding="async"></div></div>`;
 
     const specs = [
       [dict.columns.perception, perceptionLabel(locale, agent.perception), badgeTone("perception", agent.perception), isUncertain("perception", agent.perception)],
@@ -683,7 +751,7 @@ function renderEvidencePanel(agent, showTitle = true) {
 
     return `<li class="card-slot" id="agent-${esc(agent.id)}" data-agent-id="${esc(agent.id)}">
       <article class="agent-card${isOpen ? " is-open" : ""}${isSpot ? " is-spotlight" : ""}" data-card="${esc(agent.id)}">
-        <div class="card-stage" style="background:${esc(agent.pastel)}">
+        <div class="card-stage${agent.videoPoster && !isDiag ? " has-photo" : ""}" style="background:${esc(agent.pastel)}">
           <a href="${esc(detailsHref)}" class="card-stage-link" aria-label="${esc(dict.home.details)} ${esc(agent.name)}"></a>
           ${mediaStage}
           ${badgeHtml(agent.pricingBadge, priceTone, "stage-price-badge")}
@@ -975,6 +1043,18 @@ function renderEvidencePanel(agent, showTitle = true) {
     });
   });
 
+  document.querySelectorAll("[data-quick-stat]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      resetAllFilters();
+      if (btn.dataset.quickStat === "demo") state.preset = "demo";
+      renderCatalog();
+      document.getElementById("catalog")?.scrollIntoView({
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+        block: "start"
+      });
+    });
+  });
+
   document.querySelectorAll("[data-filter-group]").forEach((cb) => {
     cb.addEventListener("change", () => {
       const set = state[cb.dataset.filterGroup];
@@ -1151,10 +1231,12 @@ function renderEvidencePanel(agent, showTitle = true) {
     if (state.compareIds.length === 0) {
       compareDock.classList.remove("is-visible");
       compareDock.setAttribute("aria-hidden", "true");
+      backTopBtn?.classList.remove("has-dock");
       return;
     }
     compareDock.classList.add("is-visible");
     compareDock.setAttribute("aria-hidden", "false");
+    backTopBtn?.classList.add("has-dock");
     dockItems.innerHTML = state.compareIds
       .map((id) => {
         const a = agentMap.get(id);
@@ -1184,14 +1266,14 @@ function renderEvidencePanel(agent, showTitle = true) {
 
     const note = (t) => `<p class="compare-note">${esc(t)}</p>`;
     const attrs = [
-      [dict.columns.perception, (a) => badgeHtml(perceptionLabel(locale, a.perception), badgeTone("perception", a.perception)) + note(a.perceptionNote)],
-      [dict.columns.host, (a) => badgeHtml(hostingLabel(locale, a.hosting), badgeTone("hosting", a.hosting)) + note(a.hostingNote)],
-      [dict.columns.mcp, (a) => badgeHtml(mcpLabel(locale, a.mcp), badgeTone("mcp", a.mcp)) + note(a.mcpNote)],
-      [dict.columns.credentials, (a) => badgeHtml(authLabel(locale, a.authModel), badgeTone("auth", a.authModel)) + note(a.credentials)],
-      [dict.columns.antiBot, (a) => badgeHtml(a.antiBotBadge, badgeTone("antiBot", a.antiBotBadge)) + note(a.antiBot)],
-      [dict.columns.price, (a) => badgeHtml(a.pricingBadge, isUncertain("pricing", a.pricingBadge) ? "unknown" : "lime") + note(a.pricing)],
-      [dict.columns.license, (a) => badgeHtml(licenseLabel(locale, a.license), badgeTone("license", a.license))],
-      [dict.columns.checked, (a) => `<span class="tabular-nums" style="font-family:var(--font-mono);font-size:0.8rem;">${esc(a.lastChecked)}</span>`]
+      [dict.columns.perception, (a) => a.perception, (a) => badgeHtml(perceptionLabel(locale, a.perception), badgeTone("perception", a.perception)) + note(a.perceptionNote)],
+      [dict.columns.host, (a) => a.hosting, (a) => badgeHtml(hostingLabel(locale, a.hosting), badgeTone("hosting", a.hosting)) + note(a.hostingNote)],
+      [dict.columns.mcp, (a) => a.mcp, (a) => badgeHtml(mcpLabel(locale, a.mcp), badgeTone("mcp", a.mcp)) + note(a.mcpNote)],
+      [dict.columns.credentials, (a) => a.authModel, (a) => badgeHtml(authLabel(locale, a.authModel), badgeTone("auth", a.authModel)) + note(a.credentials)],
+      [dict.columns.antiBot, (a) => a.antiBotBadge, (a) => badgeHtml(a.antiBotBadge, badgeTone("antiBot", a.antiBotBadge)) + note(a.antiBot)],
+      [dict.columns.price, (a) => a.pricingBadge, (a) => badgeHtml(a.pricingBadge, isUncertain("pricing", a.pricingBadge) ? "unknown" : "lime") + note(a.pricing)],
+      [dict.columns.license, (a) => a.license, (a) => badgeHtml(licenseLabel(locale, a.license), badgeTone("license", a.license))],
+      [dict.columns.checked, (a) => a.lastChecked, (a) => `<span class="tabular-nums" style="font-family:var(--font-mono);font-size:0.8rem;">${esc(a.lastChecked)}</span>`]
     ];
 
     compareBody.innerHTML = `<table class="compare-table">
@@ -1219,12 +1301,13 @@ function renderEvidencePanel(agent, showTitle = true) {
       </thead>
       <tbody>
         ${attrs
-          .map(
-            ([label, renderVal]) => `<tr>
+          .map(([label, keyFn, renderVal]) => {
+            const isDiff = items.length > 1 && new Set(items.map(keyFn)).size > 1;
+            return `<tr${isDiff ? ' class="is-diff"' : ""}>
               <th scope="row" class="compare-attr-col">${esc(label)}</th>
               ${items.map((a) => `<td>${renderVal(a)}</td>`).join("")}
-            </tr>`
-          )
+            </tr>`;
+          })
           .join("")}
       </tbody>
     </table>`;

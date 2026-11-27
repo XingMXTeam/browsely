@@ -147,7 +147,7 @@ function normalizeVideo(entry) {
   return {
     video,
     videoPoster: poster,
-    videoPosterKind: null,
+    videoPosterKind: posterKind === "diagram" ? "diagram" : null,
     videoKind: entry.video_kind,
     videoSource: source,
     youtubeId

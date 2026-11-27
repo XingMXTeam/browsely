@@ -41,11 +41,11 @@
       ],
       "status": "active",
       "docs": "https://docs.browser-use.com",
-      "video": "https://browser-use.com/og/home-og-8330ddcd.mp4",
-      "video_poster": "https://browser-use.com/og/home-og-9389546d.png",
-      "video_kind": "mp4",
+      "video": null,
+      "video_poster": "/posters/browser-use.webp",
+      "video_kind": null,
       "video_source": "https://browser-use.com/",
-      "video_poster_kind": null
+      "video_poster_kind": "diagram"
     },
     {
       "id": "stagehand",
@@ -152,7 +152,7 @@
       "status": "active",
       "docs": "https://playwright.dev/docs/getting-started-mcp",
       "video": "https://www.youtube.com/watch?v=2716IUeCIQo",
-      "video_poster": "https://img.youtube.com/vi/2716IUeCIQo/hqdefault.jpg",
+      "video_poster": "/posters/playwright-mcp.webp",
       "video_kind": "youtube",
       "video_source": "https://playwright.dev/community/mcp-videos",
       "video_poster_kind": null
@@ -188,7 +188,7 @@
       "status": "active",
       "docs": "https://support.claude.com/en/articles/12012173-get-started-with-claude-in-chrome",
       "video": "https://assets.claude.com/2606848edc7f8eace605045078ae377054a33e5d.webm",
-      "video_poster": "https://assets.claude.com/347a6904eea261cb28ab3feba64450143ee64e16.jpg?w=1200&h=630&fit=crop",
+      "video_poster": "/posters/claude-in-chrome.webp",
       "video_kind": "webm",
       "video_source": "https://claude.com/claude-in-chrome",
       "video_poster_kind": null
@@ -227,7 +227,7 @@
       "status": "active",
       "docs": "https://docs.notte.cc/",
       "video": "https://www.youtube.com/watch?v=F1k6Kbh7pG4",
-      "video_poster": "https://img.youtube.com/vi/F1k6Kbh7pG4/hqdefault.jpg",
+      "video_poster": "/posters/notte.webp",
       "video_kind": "youtube",
       "video_source": "https://www.youtube.com/@nottelabs",
       "video_poster_kind": null
@@ -262,7 +262,7 @@
       "status": "active",
       "docs": "https://developers.openai.com/api/docs/guides/tools-computer-use",
       "video": "https://www.youtube.com/watch?v=CSE77wAdDLg",
-      "video_poster": "https://img.youtube.com/vi/CSE77wAdDLg/hqdefault.jpg",
+      "video_poster": "/posters/openai-computer-use.webp",
       "video_kind": "youtube",
       "video_source": "https://openai.com/index/introducing-operator/",
       "video_poster_kind": null
@@ -301,7 +301,7 @@
       "status": "active",
       "docs": "https://docs.smooth.sh/",
       "video": "https://www.youtube.com/watch?v=fvf7oLcSxWg",
-      "video_poster": "https://img.youtube.com/vi/fvf7oLcSxWg/hqdefault.jpg",
+      "video_poster": "/posters/smooth.webp",
       "video_kind": "youtube",
       "video_source": "https://www.youtube.com/channel/UChWHO5tIOzhVm8seUOhQEPw",
       "video_poster_kind": null
@@ -336,10 +336,10 @@
       "last_checked": "2026-10-26",
       "docs": "https://lite.ego.app/document/",
       "video": "https://cdn.ego.app/assets/docs/usage-video-720p.mp4",
-      "video_poster": "https://lite.ego.app/og.png",
+      "video_poster": "/posters/ego-lite.webp",
       "video_kind": "mp4",
       "video_source": "https://lite.ego.app/document/en/docs/video-run-your-first-task",
-      "video_poster_kind": null
+      "video_poster_kind": "diagram"
     },
     {
       "id": "xbrowser",
@@ -441,7 +441,7 @@
       "video": null,
       "video_kind": null,
       "video_source": null,
-      "video_poster": "/posters/huashu-chrome.png",
+      "video_poster": "/posters/huashu-chrome.webp",
       "video_poster_kind": "diagram"
     },
     {
@@ -507,7 +507,7 @@
       "last_checked": "2026-11-02",
       "docs": "https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/browser-automation",
       "video": "https://www.youtube.com/watch?v=FBQRc-M18ws",
-      "video_poster": "https://img.youtube.com/vi/FBQRc-M18ws/hqdefault.jpg",
+      "video_poster": "/posters/foundry-browser-automation.webp",
       "video_kind": "youtube",
       "video_source": "https://www.youtube.com/@MicrosoftDeveloper",
       "video_poster_kind": null

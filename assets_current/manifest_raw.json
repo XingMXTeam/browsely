@@ -1,13 +1,13 @@
 {
-  "/assets/app.82ceff4b02.css": {
-    "hash": "82ceff4b0274458ee53729eb9d2c811e",
-    "size": 55272,
-    "content_type": "text/css"
-  },
-  "/assets/app.c32c4d2fd6.js": {
-    "hash": "c32c4d2fd6963db812b61970998baed0",
-    "size": 71368,
+  "/assets/app.1192108495.js": {
+    "hash": "119210849581fe25e158239ea5306efc",
+    "size": 74029,
     "content_type": "application/javascript"
+  },
+  "/assets/app.518b36baf9.css": {
+    "hash": "518b36baf9cedac932d54c8dfeedc879",
+    "size": 58223,
+    "content_type": "text/css"
   },
   "/browseboard.svg": {
     "hash": "15116006c92143c7b2a88a3fc18e5d59",
@@ -45,8 +45,8 @@
     "content_type": "image/png"
   },
   "/logos/claude.png": {
-    "hash": "dcc58271920750441afd420268045add",
-    "size": 62828,
+    "hash": "cab60750aed0a90043ab34fbbc45c9c6",
+    "size": 8798,
     "content_type": "image/png"
   },
   "/logos/ego-lite.svg": {
@@ -60,8 +60,8 @@
     "content_type": "image/png"
   },
   "/logos/huashu-chrome.jpg": {
-    "hash": "7a3abdfa97f18e2cae2e56af60796263",
-    "size": 29460,
+    "hash": "19d07cf01155ea03c260d2191d4dcd73",
+    "size": 6001,
     "content_type": "image/jpeg"
   },
   "/logos/notte.png": {
@@ -85,8 +85,8 @@
     "content_type": "image/svg+xml"
   },
   "/logos/skyvern.png": {
-    "hash": "d0534cc9066ff205cbe31af1b07f8948",
-    "size": 53029,
+    "hash": "5f64653ce190b59f72262ef6a4995a02",
+    "size": 6712,
     "content_type": "image/png"
   },
   "/logos/smooth.svg": {
@@ -104,14 +104,54 @@
     "size": 1624,
     "content_type": "image/png"
   },
-  "/posters/huashu-chrome.png": {
-    "hash": "6b10b349b65d72bec8e74f7b551265b1",
-    "size": 373830,
-    "content_type": "image/png"
+  "/posters/browser-use.webp": {
+    "hash": "7c1c88c471f9a9886459a7950fc12196",
+    "size": 13816,
+    "content_type": "image/webp"
+  },
+  "/posters/claude-in-chrome.webp": {
+    "hash": "92728c43a558087aeec3be078a8dcc58",
+    "size": 6134,
+    "content_type": "image/webp"
+  },
+  "/posters/ego-lite.webp": {
+    "hash": "9d986dd8fe44cd486f313055db244112",
+    "size": 26664,
+    "content_type": "image/webp"
+  },
+  "/posters/foundry-browser-automation.webp": {
+    "hash": "5edf044c3d2d0e364353e7ed67c405b2",
+    "size": 20010,
+    "content_type": "image/webp"
+  },
+  "/posters/huashu-chrome.webp": {
+    "hash": "901b0f51c1995554fd6bea494203f090",
+    "size": 57812,
+    "content_type": "image/webp"
+  },
+  "/posters/notte.webp": {
+    "hash": "8649fb25cb6c290b47d2f044a1532d39",
+    "size": 11478,
+    "content_type": "image/webp"
+  },
+  "/posters/openai-computer-use.webp": {
+    "hash": "13586ae68a5bbce7f7b8443d443345b9",
+    "size": 5690,
+    "content_type": "image/webp"
+  },
+  "/posters/playwright-mcp.webp": {
+    "hash": "a8b081b3082510a06152cac8418c0ce3",
+    "size": 13154,
+    "content_type": "image/webp"
+  },
+  "/posters/smooth.webp": {
+    "hash": "f0b4cf022b15db7cd8c2b8d87b8967b6",
+    "size": 22234,
+    "content_type": "image/webp"
   },
   "/wechat-qr.jpg": {
-    "hash": "ad3eebfc0f8ec09d2c9c4569de17b27c",
-    "size": 59538,
+    "hash": "a6104aca5b8c0f127a4791c3b4a54e25",
+    "size": 23824,
     "content_type": "image/jpeg"
   }
 }

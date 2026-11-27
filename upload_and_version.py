@@ -142,18 +142,23 @@ def main():
     open(os.path.join(ROOT, "completion.jwt"), "w").write(completion)
     print("completion JWT 已保存", file=sys.stderr)
 
+    headers_file = os.path.join(ASSETS_DIR, "_headers")
+    assets_meta = {"jwt": completion}
+    if os.path.exists(headers_file):
+        assets_meta["config"] = {"_headers": open(headers_file, encoding="utf-8").read()}
+
     # 2) 上传新版本
     code = open(os.path.join(ROOT, "pkg", "worker.js"), "rb").read()
     metadata = {
         "main_module": "worker.js",
         "compatibility_date": "2026-10-19",
         "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-        "assets": {"jwt": completion},
+        "assets": assets_meta,
         "bindings": [
             {"name": "ASSETS", "type": "assets"},
             {"name": "WORKER_SELF_REFERENCE", "type": "service", "service": "browseboard", "environment": "production"},
         ],
-        "annotations": {"workers/message": "Browserly visual & performance redesign (pure ESM worker + lightweight assets)"},
+        "annotations": {"workers/message": "Browserly visual, micro-interaction & web-perf upgrade"},
     }
     boundary = "----cfver" + uuid.uuid4().hex
     body = b""

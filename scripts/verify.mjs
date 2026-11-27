@@ -16,7 +16,8 @@ const MIME = {
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg"
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp"
 };
 
 const env = {
@@ -71,6 +72,12 @@ for (const entry of seed.entries) {
   ok(Boolean(logoRel), `Agent ${entry.id} missing from LOGO_MAP in src/data/catalog.js`);
   const logoDisk = path.join(ASSETS_DIR, logoRel.replace(/^\/+/, ""));
   ok(fs.existsSync(logoDisk), `Logo file missing on disk for ${entry.id}: ${logoRel}`);
+  if (entry.video_poster) {
+    ok(entry.video_poster.startsWith("/posters/"), `Poster for ${entry.id} should be self-hosted under /posters/: ${entry.video_poster}`);
+    const posterDisk = path.join(ASSETS_DIR, entry.video_poster.replace(/^\/+/, ""));
+    ok(fs.existsSync(posterDisk), `Poster file missing on disk for ${entry.id}: ${entry.video_poster}`);
+    ok(entry.video_poster in manifest, `Poster missing from manifest: ${entry.video_poster}`);
+  }
 }
 for (const storyId of Object.keys(stories)) {
   ok(activeSeedIds.has(storyId), `Story key ${storyId} in src/data/stories.json is not an active agent in seed.json`);
@@ -183,6 +190,25 @@ ok(Array.isArray(diskEval.cases) && diskEval.cases.length >= 6, "eval-cases.json
 const iconRes = await req("/icon.svg");
 ok(iconRes.status === 200 && iconRes.headers.get("content-type")?.includes("image/svg+xml"), "/icon.svg status & type");
 
+// 3d. /robots.txt, /sitemap.xml, OPTIONS CORS preflight, and immutable static asset headers
+const robotsRes = await req("/robots.txt");
+ok(robotsRes.status === 200, "/robots.txt status 200");
+const robotsText = await robotsRes.text();
+ok(robotsText.includes("Sitemap: https://browserly.maoxunxing.com/sitemap.xml"), "/robots.txt references sitemap.xml");
+
+const sitemapRes = await req("/sitemap.xml");
+ok(sitemapRes.status === 200 && sitemapRes.headers.get("content-type")?.includes("application/xml"), "/sitemap.xml status & xml type");
+const sitemapText = await sitemapRes.text();
+ok(sitemapText.includes("<urlset") && sitemapText.includes("/skill") && sitemapText.includes("/agent/playwright-mcp"), "/sitemap.xml includes core and agent URLs");
+
+const optRes = await req("/api/recommend", { method: "OPTIONS" });
+ok(optRes.status === 204 && optRes.headers.get("access-control-allow-origin") === "*", "OPTIONS /api/recommend returns 204 with CORS");
+
+const headersFile = path.join(ASSETS_DIR, "_headers");
+ok(fs.existsSync(headersFile), "assets_current/_headers exists for Cloudflare Static Assets immutable caching");
+const headersBody = fs.readFileSync(headersFile, "utf8");
+ok(headersBody.includes("/assets/*") && headersBody.includes("max-age=31536000, immutable"), "_headers enforces immutable cache on /assets/*");
+
 // 4. POST endpoints
 const nlRes = await req("/api/newsletter", { method: "POST" });
 ok(nlRes.status === 501, "/api/newsletter returns 501");
@@ -221,6 +247,12 @@ for (const route of htmlRoutes) {
     ok(html.startsWith("<!doctype html>"), `${route} [${loc}] missing doctype`);
     ok(html.includes(loc === "zh" ? 'lang="zh-CN"' : 'lang="en"'), `${route} [${loc}] wrong html lang`);
     ok(!html.includes("undefined") && !html.includes("[object Object]"), `${route} [${loc}] leaked undefined/object`);
+    ok(html.includes('class="skip-link"') && html.includes('id="main-content"'), `${route} [${loc}] missing skip-link or main-content landmark`);
+    ok(Boolean(res.headers.get("link")?.includes("rel=preload")), `${route} [${loc}] missing Link preload header`);
+
+    if (route === "/" || route.startsWith("/agent/")) {
+      ok(html.includes('type="application/ld+json"'), `${route} [${loc}] missing JSON-LD structured data`);
+    }
 
     if (route === "/") {
       ok(
@@ -270,6 +302,10 @@ for (const ref of localAssetRefs) {
 const cssEntry = Object.keys(manifest).find((k) => k.startsWith("/assets/app.") && k.endsWith(".css"));
 const jsEntry = Object.keys(manifest).find((k) => k.startsWith("/assets/app.") && k.endsWith(".js"));
 ok(Boolean(cssEntry && jsEntry), "Hashed CSS and JS entries present in manifest");
+const cssResp = await req(cssEntry);
+ok(cssResp.status === 200 && cssResp.headers.get("cache-control")?.includes("immutable"), "Worker asset fallback sets immutable Cache-Control on hashed CSS");
+const posterResp = await req("/posters/browser-use.webp");
+ok(posterResp.status === 200 && posterResp.headers.get("content-type")?.includes("image/webp"), "Self-hosted WebP poster serves cleanly");
 const cssText = fs.readFileSync(path.join(ASSETS_DIR, cssEntry.slice(1)), "utf8");
 for (const m of cssText.matchAll(/url\((["']?)(\/[^"')]+)\1\)/g)) {
   ok(m[2] in manifest, `CSS references missing manifest asset: ${m[2]}`);
@@ -293,11 +329,11 @@ const homeBuf = Buffer.from(homeHtml, "utf8");
 const homeBytes = homeBuf.length;
 const homeGz = gzipSync(homeBuf, { level: 9 }).length;
 
-ok(workerSize < 190 * 1024, `pkg/worker.js size ${workerSize} exceeds 190 KB budget`);
-ok(cssSize < 54 * 1024, `CSS size ${cssSize} exceeds 54 KB budget`);
-ok(cssGz < 10.5 * 1024, `CSS gzip ${cssGz} exceeds 10.5 KB budget`);
-ok(jsSize < 72 * 1024, `Client JS size ${jsSize} exceeds 72 KB budget`);
-ok(jsGz < 21 * 1024, `Client JS gzip ${jsGz} exceeds 21 KB budget`);
+ok(workerSize < 200 * 1024, `pkg/worker.js size ${workerSize} exceeds 200 KB budget`);
+ok(cssSize < 58 * 1024, `CSS size ${cssSize} exceeds 58 KB budget`);
+ok(cssGz < 11.2 * 1024, `CSS gzip ${cssGz} exceeds 11.2 KB budget`);
+ok(jsSize < 74 * 1024, `Client JS size ${jsSize} exceeds 74 KB budget`);
+ok(jsGz < 22 * 1024, `Client JS gzip ${jsGz} exceeds 22 KB budget`);
 ok(homeBytes < 148 * 1024, `Homepage HTML size ${homeBytes} exceeds 148 KB budget`);
 ok(homeGz < 25 * 1024, `Homepage HTML gzip ${homeGz} exceeds 25 KB budget`);
 

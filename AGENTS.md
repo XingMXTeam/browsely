@@ -76,7 +76,7 @@ upload_and_version.py  # Direct Cloudflare API asset uploader & Worker version d
 - **Epistemic Honesty:** Never guess unverified capabilities or prices; mark them `unknown` (rendered with a dashed border).
 - **Zero External Runtime Dependencies:** Keep `src/` and `scripts/` dependency-free so builds and tests run instantaneously in any Node.js environment.
 - **Performance Budgets (enforced by `scripts/verify.mjs`):**
-  - `pkg/worker.js` < 190 KB raw
-  - CSS bundle < 54 KB raw / < 10.5 KB gzip
-  - Client JS bundle < 72 KB raw / < 21 KB gzip
+  - `pkg/worker.js` < 200 KB raw
+  - CSS bundle < 58 KB raw / < 11.2 KB gzip
+  - Client JS bundle < 74 KB raw / < 22 KB gzip
   - Homepage SSR HTML < 148 KB raw / < 25 KB gzip

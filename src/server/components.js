@@ -51,18 +51,24 @@ export function renderDocument({
   jsHref,
   body,
   inlineScripts = [],
+  jsonLd = null,
   pageType = "page"
 }) {
   const canonicalUrl = `https://browserly.maoxunxing.com${path === "/" ? "" : path}`;
   const scriptsHtml = inlineScripts
     .map(({ id, data }) => `<script type="application/json" id="${esc(id)}">${safeJson(data)}</script>`)
     .join("");
+  const ldHtml = jsonLd
+    ? `<script type="application/ld+json">${safeJson(jsonLd)}</script>`
+    : "";
+  const skipLabel = locale === "zh" ? "跳至主要内容" : "Skip to main content";
 
   return `<!doctype html>
 <html lang="${htmlLang(locale)}" data-locale="${esc(locale)}" data-page="${esc(pageType)}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f6f3ec">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${esc(canonicalUrl)}">
@@ -70,13 +76,17 @@ export function renderDocument({
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${esc(canonicalUrl)}">
+<meta property="og:site_name" content="${BRAND_NAME}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/bricolage-grotesque.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${esc(cssHref)}">
+${ldHtml}
 </head>
 <body>
+<a href="#main-content" class="skip-link">${esc(skipLabel)}</a>
 ${body}
+<button type="button" class="back-top-btn" id="back-to-top" aria-label="${esc(locale === "zh" ? "回到顶部" : "Back to top")}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></button>
 ${scriptsHtml}
 <script src="${esc(jsHref)}" defer></script>
 </body>
@@ -149,9 +159,9 @@ export function renderAgentCard(agent, locale, dict, isOpen = false) {
   const playLabel = formatTemplate(dict.motion.play, { name: agent.name });
 
   const mediaStage = agent.videoPoster
-    ? `<img src="${esc(agent.videoPoster)}" alt="" loading="lazy" class="card-stage-media${isDiagram ? " is-diagram" : ""}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-       <div class="card-stage-fallback" style="display:none"><div class="card-stage-medallion"><img src="${esc(agent.logo)}" alt=""></div></div>`
-    : `<div class="card-stage-fallback"><div class="card-stage-medallion"><img src="${esc(agent.logo)}" alt=""></div></div>`;
+    ? `<img src="${esc(agent.videoPoster)}" alt="" width="640" height="380" loading="lazy" decoding="async" class="card-stage-media${isDiagram ? " is-diagram" : ""}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+       <div class="card-stage-fallback" style="display:none"><div class="card-stage-medallion"><img src="${esc(agent.logo)}" alt="" width="48" height="48" loading="lazy" decoding="async"></div></div>`
+    : `<div class="card-stage-fallback"><div class="card-stage-medallion"><img src="${esc(agent.logo)}" alt="" width="48" height="48" loading="lazy" decoding="async"></div></div>`;
 
   const specs = [
     [dict.columns.perception, perceptionLabel(locale, agent.perception), badgeTone("perception", agent.perception), isUncertain("perception", agent.perception)],
@@ -164,7 +174,7 @@ export function renderAgentCard(agent, locale, dict, isOpen = false) {
 
   return `<li class="card-slot" id="agent-${esc(agent.id)}">
   <article class="agent-card${isOpen ? " is-open" : ""}" data-card="${esc(agent.id)}">
-    <div class="card-stage" style="background:${esc(agent.pastel)}">
+    <div class="card-stage${agent.videoPoster && !isDiagram ? " has-photo" : ""}" style="background:${esc(agent.pastel)}">
       <a href="${esc(detailsHref)}" class="card-stage-link" aria-label="${esc(dict.home.details)} ${esc(agent.name)}"></a>
       ${mediaStage}
       ${renderBadge(agent.pricingBadge, priceTone, "stage-price-badge")}
@@ -269,13 +279,14 @@ export function renderHomeFooter({ agents, coverage, locale, dict }) {
 </footer>`;
 }
 
-export function renderSimpleFooter({ coverage, dict }) {
+export function renderSimpleFooter({ coverage, locale = "en", dict }) {
+  const covText = locale === "zh" ? coverage.zh : coverage.en;
   return `<footer class="simple-footer">
   <div class="container" style="display:flex;flex-direction:column;gap:0.9rem;color:var(--ink-2);font-size:0.9375rem;line-height:1.65;">
     <p data-i18n="footer.docs">${esc(dict.footer.docs)}</p>
-    <p lang="zh-CN">${esc(coverage.zh)}</p>
-    <p lang="en">${esc(coverage.en)}</p>
-    <div style="display:flex;gap:1.25rem;">
+    <p data-coverage-zh="${esc(coverage.zh)}" data-coverage-en="${esc(coverage.en)}" data-coverage-text>${esc(covText)}</p>
+    <div style="display:flex;gap:1.25rem;flex-wrap:wrap;">
+      <a href="/skill" style="font-weight:700;color:var(--ink)" data-i18n="nav.skill">${esc(dict.nav.skill)}</a>
       <a href="/about" style="font-weight:700;color:var(--ink)" data-i18n="nav.method">${esc(dict.nav.method)}</a>
       <a href="/sponsor" style="font-weight:700;color:var(--ink)" data-i18n="nav.sponsor">${esc(dict.nav.sponsor)}</a>
       <a href="/" style="font-weight:700;color:var(--ink)" data-i18n="nav.matrix">${esc(dict.nav.matrix)}</a>

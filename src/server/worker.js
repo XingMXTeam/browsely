@@ -69,16 +69,61 @@ function negotiateLocale(request) {
 }
 
 function htmlResponse(html, status = 200) {
-  return new Response(html, {
-    status,
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-      Vary: "Cookie, Accept-Language",
-      "Cache-Control": status === 200 ? "private, no-cache" : "no-store",
-      "X-Content-Type-Options": "nosniff",
-      "Referrer-Policy": "strict-origin-when-cross-origin"
-    }
-  });
+  const headers = {
+    "Content-Type": "text/html; charset=utf-8",
+    Vary: "Cookie, Accept-Language",
+    "Cache-Control": status === 200 ? "private, no-cache" : "no-store",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  };
+  if (status === 200) {
+    headers.Link = `<${ASSET_URLS.cssHref}>; rel=preload; as=style, </fonts/bricolage-grotesque.woff2>; rel=preload; as=font; type="font/woff2"; crossorigin`;
+  }
+  return new Response(html, { status, headers });
+}
+
+function buildSitemapXml(catalog, origin) {
+  const urls = [
+    { loc: `${origin}/`, lastmod: catalog.checked, priority: "1.0" },
+    { loc: `${origin}/skill`, lastmod: catalog.checked, priority: "0.9" },
+    { loc: `${origin}/about`, lastmod: catalog.checked, priority: "0.7" },
+    { loc: `${origin}/sponsor`, lastmod: catalog.checked, priority: "0.4" },
+    ...catalog.agents.map((a) => ({
+      loc: `${origin}/agent/${a.id}`,
+      lastmod: a.lastChecked,
+      priority: "0.8"
+    }))
+  ];
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...urls.map(
+      (u) => `  <url><loc>${u.loc}</loc><lastmod>${u.lastmod}</lastmod><priority>${u.priority}</priority></url>`
+    ),
+    "</urlset>"
+  ].join("\n");
+}
+
+function buildRobotsTxt(origin) {
+  return [
+    "User-agent: *",
+    "Allow: /",
+    "",
+    `Sitemap: ${origin}/sitemap.xml`,
+    `# Agent Skill: ${origin}/SKILL.md`,
+    `# LLM Index: ${origin}/llms.txt`
+  ].join("\n") + "\n";
+}
+
+function withAssetCacheHeaders(pathname, resp) {
+  const headers = new Headers(resp.headers);
+  const isImmutable = pathname.startsWith("/assets/") || pathname.startsWith("/fonts/");
+  headers.set(
+    "Cache-Control",
+    isImmutable ? "public, max-age=31536000, immutable" : "public, max-age=604800, stale-while-revalidate=86400"
+  );
+  headers.set("X-Content-Type-Options", "nosniff");
+  return new Response(resp.body, { status: resp.status, statusText: resp.statusText, headers });
 }
 
 function trimField(val, maxLen) {
@@ -121,6 +166,46 @@ export default {
       ? url.pathname.slice(0, -1)
       : url.pathname;
     const method = request.method.toUpperCase();
+    const lowerPath = pathname.toLowerCase();
+    const canonicalOrigin =
+      url.hostname === "127.0.0.1" || url.hostname === "localhost"
+        ? "https://browserly.maoxunxing.com"
+        : url.origin;
+
+    if (
+      method === "OPTIONS" &&
+      (pathname.startsWith("/api/") || lowerPath.endsWith(".md") || pathname === "/llms.txt")
+    ) {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, HEAD, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Max-Age": "86400"
+        }
+      });
+    }
+
+    if (pathname === "/robots.txt" && (method === "GET" || method === "HEAD")) {
+      return new Response(buildRobotsTxt(canonicalOrigin), {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "public, max-age=86400",
+          "X-Content-Type-Options": "nosniff"
+        }
+      });
+    }
+
+    if (pathname === "/sitemap.xml" && (method === "GET" || method === "HEAD")) {
+      return new Response(buildSitemapXml(getCatalog(), canonicalOrigin), {
+        headers: {
+          "Content-Type": "application/xml; charset=utf-8",
+          "Cache-Control": "public, max-age=3600",
+          "X-Content-Type-Options": "nosniff"
+        }
+      });
+    }
 
     if (pathname === "/api/agents" && (method === "GET" || method === "HEAD")) {
       const catalog = getCatalog();
@@ -150,15 +235,11 @@ export default {
       });
     }
 
-    const lowerPath = pathname.toLowerCase();
     if (
       (lowerPath === "/skill.md" || lowerPath === "/skills/momo-browserly-advisor/skill.md") &&
       (method === "GET" || method === "HEAD")
     ) {
-      const origin = url.hostname === "127.0.0.1" || url.hostname === "localhost"
-        ? "https://browserly.maoxunxing.com"
-        : url.origin;
-      return new Response(getSkillMarkdown("en", origin), {
+      return new Response(getSkillMarkdown("en", canonicalOrigin), {
         headers: {
           "Content-Type": "text/markdown; charset=utf-8",
           "Access-Control-Allow-Origin": "*",
@@ -172,10 +253,7 @@ export default {
       (lowerPath === "/skill.zh-cn.md" || lowerPath === "/skills/momo-browserly-advisor/skill.zh-cn.md") &&
       (method === "GET" || method === "HEAD")
     ) {
-      const origin = url.hostname === "127.0.0.1" || url.hostname === "localhost"
-        ? "https://browserly.maoxunxing.com"
-        : url.origin;
-      return new Response(getSkillMarkdown("zh", origin), {
+      return new Response(getSkillMarkdown("zh", canonicalOrigin), {
         headers: {
           "Content-Type": "text/markdown; charset=utf-8",
           "Access-Control-Allow-Origin": "*",
@@ -257,7 +335,7 @@ export default {
       if (env && env.ASSETS) {
         const assetResp = await env.ASSETS.fetch(request);
         if (assetResp.status !== 404) {
-          return assetResp;
+          return withAssetCacheHeaders(pathname, assetResp);
         }
       }
 

@@ -328,8 +328,8 @@ fs.writeFileSync(path.join(ASSETS_OUT, jsFilename), minClient, "utf8");
 execFileSync(process.execPath, ["--check", path.join(ASSETS_OUT, jsFilename)], { stdio: "inherit" });
 
 // 4. Bundle Cloudflare Worker (pkg/worker.js)
-const seedJson = fs.readFileSync(path.join(SRC, "data", "seed.json"), "utf8").trim();
-const storiesJson = fs.readFileSync(path.join(SRC, "data", "stories.json"), "utf8").trim();
+const seedJson = JSON.stringify(JSON.parse(fs.readFileSync(path.join(SRC, "data", "seed.json"), "utf8")));
+const storiesJson = JSON.stringify(JSON.parse(fs.readFileSync(path.join(SRC, "data", "stories.json"), "utf8")));
 
 const catalogSrc = stripModuleDirectives(fs.readFileSync(path.join(SRC, "data", "catalog.js"), "utf8"));
 const recommenderSrc = stripModuleDirectives(fs.readFileSync(path.join(SRC, "data", "recommender.js"), "utf8"));
@@ -429,7 +429,7 @@ const MIME_BY_EXT = {
   ".webp": "image/webp"
 };
 
-const SKIP_PATHS = new Set(["/manifest_raw.json", "/icon.svg"]);
+const SKIP_PATHS = new Set(["/manifest_raw.json", "/icon.svg", "/_headers"]);
 const manifest = {};
 
 function walk(dir) {
